@@ -1,15 +1,24 @@
 # Infrastructure
 The infrastructure control repository for our AWS
 
-> Set up your credentials in ~/.aws/credentials if you haven't done it already. Or you can put your credentials in variable.tf but REMEMBER to NOW push it.
+Uses Terraform mainly to control.
 
-### Step 1: Download Terraform
+---
 
-### Step 2: run this
+### Set up your credentials
+> Put access_key and secret_key in ~/.aws/credentials
+
+> Or you can put your credentials in variable.tf but DO NOT push it.
+
+### Prerequisite:
+- Download Terraform
+
+### Deploy :
 ```
 terraform plan
 
 terraform apply
 ```
 
-### Step 3: upload your terraform.tfstate file!!! This is very important!
+### Finally:
+Upload your **terraform.tfstate** file!!! This is very important! Otherwise Terraform will not run planning correctly.
