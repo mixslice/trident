@@ -10,7 +10,7 @@ variable "region" {
     default = "cn-north-1"
 }
 
-# This ami is a linux machine
+# This ami is a ecs optimized machine
 variable "ami-code" {
-    default = "ami-26e07c1f"
+    default = "ami-0de63760"
 }
