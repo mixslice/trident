@@ -1,0 +1,30 @@
+{
+  "CN": "kubernetes",
+  "hosts": [
+    "worker0",
+
+    "${kubernetes_cluster_dns}",
+    "${controller0_ip}",
+    "${etcd0_ip}",
+    "${worker0_ip}",
+
+    "${controller0_dns}",
+    "${etcd0_dns}",
+    "${worker0_dns}",
+
+    "${kubernetes_api_elb_dns_name}",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "UK",
+      "L": "London",
+      "O": "OpenCredo",
+      "OU": "Cluster"
+    }
+  ]
+}
