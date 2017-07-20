@@ -36,11 +36,11 @@ variable ansibleFilter {
 
 # Networking setup
 variable region {
-  default = "eu-west-1"
+  default = "cn-north-1"
 }
 
 variable zone {
-  default = "eu-west-1a"
+  default = ""
 }
 
 ### VARIABLES BELOW MUST NOT BE CHANGED ###
