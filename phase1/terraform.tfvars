@@ -5,6 +5,7 @@
 
 /* Required variables */
 default_keypair_public_key = "terraform"
+/* TODO: In theory this should be your control machine's IP */
 control_cidr = "0.0.0.0/0"
 
 /* Optional. Set as desired */
