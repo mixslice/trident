@@ -43,6 +43,10 @@ variable zone {
   default = ""
 }
 
+variable k8s_api_port {
+  default = "6443"
+}
+
 ### VARIABLES BELOW MUST NOT BE CHANGED ###
 ### BECAUSE IT IS HARDCODED IN PHASE2   ###
 

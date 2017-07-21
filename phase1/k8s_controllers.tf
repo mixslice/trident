@@ -41,8 +41,8 @@ resource "aws_elb" "kubernetes_api" {
     security_groups = ["${aws_security_group.kubernetes_api.id}"]
 
     listener {
-      lb_port = 6443
-      instance_port = 6443
+      lb_port = "${var.k8s_api_port}"
+      instance_port = "${var.k8s_api_port}"
       lb_protocol = "TCP"
       instance_protocol = "TCP"
     }
@@ -71,8 +71,8 @@ resource "aws_security_group" "kubernetes_api" {
 
   # Allow inbound traffic to the port used by Kubernetes API HTTPS
   ingress {
-    from_port = 6443
-    to_port = 6443
+    from_port = "${var.k8s_api_port}"
+    to_port = "${var.k8s_api_port}"
     protocol = "TCP"
     cidr_blocks = ["${var.control_cidr}"]
   }

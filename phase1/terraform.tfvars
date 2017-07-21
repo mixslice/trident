@@ -18,4 +18,5 @@ zone = "cn-north-1a"
    override the default below.
 */
 
+/* Ubuntu v14.04 */
 amis = { cn-north-1 = "ami-0220b23b" }

@@ -1,5 +1,0 @@
-resource "aws_instance" "cskin-annotation-api" {
-    ami = "${var.ami-code}"
-    instance_type   = "t2.micro"
-
-}
