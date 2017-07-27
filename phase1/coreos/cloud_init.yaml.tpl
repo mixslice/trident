@@ -15,5 +15,5 @@ coreos:
   units:
     - name: etcd2.service
       command: start
-    - name: fleet.service
+    - name: flanneld.service
       command: start

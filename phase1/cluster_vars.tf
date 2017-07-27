@@ -1,7 +1,7 @@
 variable "discovery_url" {}
 
 variable "kube_version" {
-    default = "v1.7.1"
+    default = "v1.7.1_coreos.0"
 }
 
 variable "k8s_api_port" {
@@ -13,5 +13,5 @@ variable "master_count" {
 }
 
 variable "worker_count" {
-    default = 1
+    default = 0
 }

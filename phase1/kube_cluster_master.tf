@@ -13,7 +13,7 @@ resource "aws_instance" "master" {
         volume_size = "${var.master_volume_size}"
     }
 
-    vpc_security_group_ids = ["${aws_security_group.kubernetes_api.id}"]
+    vpc_security_group_ids = ["${aws_security_group.k8s-master.id}"]
     subnet_id = "${aws_subnet.kubernetes.id}"
     associate_public_ip_address = true
     iam_instance_profile = "${aws_iam_instance_profile.master_profile.name}"
@@ -21,7 +21,7 @@ resource "aws_instance" "master" {
     key_name = "${aws_key_pair.ssh_key.key_name}"
 
     tags {
-      Name = "Master"
+      Name = "k8s-master"
     }
 }
 
@@ -70,29 +70,39 @@ resource "null_resource" "master" {
             "rm -R /tmp/certs",
             "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem",
             "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
-            "sudo mkdir -p /opt/bin",
-            "sudo curl -L -o /opt/bin/kubelet https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/kubelet",
-            "sudo chmod +x /opt/bin/kubelet",
-            "K8S_VER=${var.kube_version}",
+
             "ETCD_ENDPOINTS=${self.triggers.etcd_endpoints}",
             "ETCD_SERVER=${self.triggers.etcd_server}",
             "ADVERTISE_IP=${element(aws_instance.master.*.private_ip, count.index)}",
             "ADVERTISE_DNS=${element(aws_instance.master.*.private_dns, count.index)}",
             "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/options.env",
             "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/options.env",
+
             "sudo mkdir -p /etc/systemd/system/etcd2.service.d",
+            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/40-listen-address.conf",
             "sudo mv /tmp/40-listen-address.conf /etc/systemd/system/etcd2.service.d/40-listen-address.conf",
             "sudo systemctl daemon-reload",
             "sudo systemctl start etcd2",
             "sudo systemctl enable etcd2",
+
             "sudo mkdir -p /etc/flannel",
             "sudo mv /tmp/options.env /etc/flannel/options.env",
             "sudo mkdir -p /etc/systemd/system/flanneld.service.d",
+
             "sudo mv /tmp/40-ExecStartPre-symlink.conf /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf",
             "sudo mkdir -p /etc/systemd/system/docker.service.d",
             "sudo mv /tmp/40-flannel.conf /etc/systemd/system/docker.service.d/40-flannel.conf",
+
+            "sudo mkdir -p /etc/kubernetes/cni",
+            "sudo mv /tmp/docker_opts_cni.env /etc/kubernetes/cni/docker_opts_cni.env",
+            "sudo mkdir -p /etc/kubernetes/cni/net.d",
+            "sudo mv /tmp/10-flannel.conf /etc/kubernetes/cni/net.d/10-flannel.conf",
+
             "sed -i \"s|<ADVERTISE_DNS>|$ADVERTISE_DNS|g\" /tmp/kubelet.service",
+            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kubelet.service",
+            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kubelet.service",
             "sudo mv /tmp/kubelet.service /etc/systemd/system/kubelet.service",
+
             "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-apiserver.yaml",
             "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/kube-apiserver.yaml",
             "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kube-apiserver.yaml",
@@ -100,20 +110,27 @@ resource "null_resource" "master" {
             "sudo mv /tmp/kube-apiserver.yaml /etc/kubernetes/manifests/kube-apiserver.yaml",
             "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-proxy.yaml",
             "sudo mv /tmp/kube-proxy.yaml /etc/kubernetes/manifests/kube-proxy.yaml",
+
             "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/kube-podmaster.yaml",
             "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kube-podmaster.yaml",
             "sudo mv /tmp/kube-podmaster.yaml /etc/kubernetes/manifests/kube-podmaster.yaml",
+
             "sudo mkdir -p /srv/kubernetes/manifests",
             "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-controller-manager.yaml",
             "sudo mv /tmp/kube-controller-manager.yaml /srv/kubernetes/manifests/kube-controller-manager.yaml",
+
             "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-scheduler.yaml",
             "sudo mv /tmp/kube-scheduler.yaml /srv/kubernetes/manifests/kube-scheduler.yaml",
+
             "sudo systemctl daemon-reload",
             "curl -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' \"$ETCD_SERVER/v2/keys/coreos.com/network/config\"",
+            "sudo systemctl start flanneld",
+            "sudo systemctl enable flanneld",
             "sudo systemctl start kubelet",
-            "sudo systemctl enable kubelet",
-            "until $(curl -o /dev/null -sf http://127.0.0.1:8080/version); do printf 'curl not responding...'; sleep 5; done",
-            "curl -X POST -d '{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"name\":\"kube-system\"}}' \"http://127.0.0.1:8080/api/v1/namespaces\""
+            "sudo systemctl enable kubelet"
         ]
     }
 }
+
+# "until $(curl -o /dev/null -sf http://127.0.0.1:8080/version); do printf 'curl not responding...'; sleep 5; done",
+# "curl -X POST -d '{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"name\":\"kube-system\"}}' \"http://127.0.0.1:8080/api/v1/namespaces\""
