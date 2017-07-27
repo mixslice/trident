@@ -21,7 +21,7 @@ resource "aws_instance" "worker" {
     key_name = "${aws_key_pair.ssh_key.key_name}"
 
     tags {
-      Name = "Worker-${count.index}"
+      Name = "k8s-worker-${count.index}"
     }
 }
 
@@ -71,9 +71,7 @@ resource "null_resource" "worker" {
             "rm -R /tmp/certs",
             "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem",
             "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
-            "sudo mkdir -p /opt/bin",
-            "sudo curl -L -o /opt/bin/kubelet https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/kubelet",
-            "sudo chmod +x /opt/bin/kubelet",
+
             "MASTER_HOST=${aws_elb.kube_master.dns_name}",
             "ETCD_ENDPOINTS=${self.triggers.etcd_endpoints}",
             "ADVERTISE_IP=${element(aws_instance.worker.*.private_ip, count.index)}",
