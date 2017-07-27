@@ -17,9 +17,118 @@ resource "aws_instance" "master" {
     subnet_id = "${aws_subnet.kubernetes.id}"
     associate_public_ip_address = true
     iam_instance_profile = "${aws_iam_instance_profile.master_profile.name}"
-    user_data = "${template_file.cloud_init.rendered}"
-    key_name = "${aws_key_pair.ssh_key.key_name}"
+    user_data = "${file("${path.module}/master/master.yaml")}"
+    key_name = "${var.ssh_key_name}"
 
+    connection {
+        type = "ssh",
+        user = "core",
+        private_key = "${file(var.ssh_private_key_path)}"
+    }
+
+    # Generate the Certificate Authority
+    provisioner "local-exec" {
+        command = <<EOF
+            ${path.module}/cfssl/generate_ca.sh
+EOF
+    }
+    # Generate k8s-etcd server certificate
+    provisioner "local-exec" {
+        command = <<EOF
+            ${path.module}/cfssl/generate_server.sh k8s_etcd ${self.private_ip}
+EOF
+    }
+    #
+    provisioner "file" {
+        source = "./secrets/ca.pem"
+        destination = "/home/core/ca.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/k8s_etcd.pem"
+        destination = "/home/core/etcd.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/k8s_etcd-key.pem"
+        destination = "/home/core/etcd-key.pem"
+    }
+
+    # TODO: figure out etcd2 user and chown, chmod key.pem files
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /etc/kubernetes/ssl",
+            "sudo mv /home/core/{ca,etcd,etcd-key}.pem /etc/kubernetes/ssl/.",
+            "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem ",
+            "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
+        ]
+    }
+
+    # Start etcd2
+    provisioner "remote-exec" {
+        inline = [
+            "sudo systemctl start etcd2",
+            "sudo systemctl enable etcd2",
+        ]
+    }
+
+    # Generate k8s_master server certificate
+    provisioner "local-exec" {
+        command = <<EOF
+            ${path.module}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},10.3.0.1,kubernetes.default,kubernetes"
+EOF
+    }
+    # Provision k8s_etcd server certificate
+    provisioner "file" {
+        source = "./secrets/ca.pem"
+        destination = "/home/core/ca.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/k8s_master.pem"
+        destination = "/home/core/apiserver.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/k8s_master-key.pem"
+        destination = "/home/core/apiserver-key.pem"
+    }
+
+    # Generate k8s_master client certificate
+    provisioner "local-exec" {
+        command = <<EOF
+            ${path.module}/cfssl/generate_client.sh k8s_master
+EOF
+    }
+
+    # Provision k8s_master client certificate
+    provisioner "file" {
+        source = "./secrets/client-k8s_master.pem"
+        destination = "/home/core/client.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/client-k8s_master-key.pem"
+        destination = "/home/core/client-key.pem"
+    }
+
+    # TODO: figure out permissions and chown, chmod key.pem files
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /etc/kubernetes/ssl",
+            "sudo cp /home/core/{ca,apiserver,apiserver-key,client,client-key}.pem /etc/kubernetes/ssl/.",
+            "rm /home/core/{apiserver,apiserver-key}.pem",
+            "sudo mkdir -p /etc/ssl/etcd",
+            "sudo mv /home/core/{ca,client,client-key}.pem /etc/ssl/etcd/.",
+        ]
+    }
+
+    # Start kubelet and create kube-system namespace
+    provisioner "remote-exec" {
+        inline = [
+            "sudo systemctl daemon-reload",
+            "curl --cacert /etc/kubernetes/ssl/ca.pem --cert /etc/kubernetes/ssl/client.pem --key /etc/kubernetes/ssl/client-key.pem -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' https://${self.private_ip}:2379/v2/keys/coreos.com/network/config",
+            "sudo systemctl start flanneld",
+            "sudo systemctl enable flanneld",
+            "sudo systemctl start kubelet",
+            "sudo systemctl enable kubelet"
+        ]
+    }
     tags {
       Name = "k8s-master"
     }
@@ -29,108 +138,13 @@ output "kubernetes_master_public_ip" {
     value = "${join(",", aws_instance.master.*.public_ip)}"
 }
 
-resource "null_resource" "master" {
-    count = "${var.master_count}"
-
-    depends_on = ["aws_elb.kube_master"]
-
-    triggers {
-        etcd_endpoints = "${join(",", formatlist("http://%s:2379", aws_instance.master.*.private_ip))}"
-        etcd_server = "${format("http://%s:2379", aws_instance.master.0.private_ip)}"
-    }
-    # Tell terraform how to connect to these instances
-    connection {
-        host = "${element(aws_instance.master.*.public_ip, count.index)}"
-        type = "ssh"
-        user = "core"
-        private_key = "${file(var.ssh_private_key_path)}"
-    }
-    # Move local files to machines
-    provisioner "file" {
-        source = "openssl/certs"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source = "shared/"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source = "master/"
-        destination = "/tmp"
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            "sudo mkdir -p /etc/kubernetes/ssl",
-            "sudo mv /tmp/certs/ca.pem /etc/kubernetes/ssl/ca.pem",
-            "sudo mv /tmp/certs/apiserver.pem /etc/kubernetes/ssl/apiserver.pem",
-            "sudo mv /tmp/certs/apiserver-key.pem /etc/kubernetes/ssl/apiserver-key.pem",
-            "rm -R /tmp/certs",
-            "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem",
-            "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
-
-            "ETCD_ENDPOINTS=${self.triggers.etcd_endpoints}",
-            "ETCD_SERVER=${self.triggers.etcd_server}",
-            "ADVERTISE_IP=${element(aws_instance.master.*.private_ip, count.index)}",
-            "ADVERTISE_DNS=${element(aws_instance.master.*.private_dns, count.index)}",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/options.env",
-            "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/options.env",
-
-            "sudo mkdir -p /etc/systemd/system/etcd2.service.d",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/40-listen-address.conf",
-            "sudo mv /tmp/40-listen-address.conf /etc/systemd/system/etcd2.service.d/40-listen-address.conf",
-            "sudo systemctl daemon-reload",
-            "sudo systemctl start etcd2",
-            "sudo systemctl enable etcd2",
-
-            "sudo mkdir -p /etc/flannel",
-            "sudo mv /tmp/options.env /etc/flannel/options.env",
-            "sudo mkdir -p /etc/systemd/system/flanneld.service.d",
-
-            "sudo mv /tmp/40-ExecStartPre-symlink.conf /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf",
-            "sudo mkdir -p /etc/systemd/system/docker.service.d",
-            "sudo mv /tmp/40-flannel.conf /etc/systemd/system/docker.service.d/40-flannel.conf",
-
-            "sudo mkdir -p /etc/kubernetes/cni",
-            "sudo mv /tmp/docker_opts_cni.env /etc/kubernetes/cni/docker_opts_cni.env",
-            "sudo mkdir -p /etc/kubernetes/cni/net.d",
-            "sudo mv /tmp/10-flannel.conf /etc/kubernetes/cni/net.d/10-flannel.conf",
-
-            "sed -i \"s|<ADVERTISE_DNS>|$ADVERTISE_DNS|g\" /tmp/kubelet.service",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kubelet.service",
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kubelet.service",
-            "sudo mv /tmp/kubelet.service /etc/systemd/system/kubelet.service",
-
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-apiserver.yaml",
-            "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/kube-apiserver.yaml",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kube-apiserver.yaml",
-            "sudo mkdir -p /etc/kubernetes/manifests",
-            "sudo mv /tmp/kube-apiserver.yaml /etc/kubernetes/manifests/kube-apiserver.yaml",
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-proxy.yaml",
-            "sudo mv /tmp/kube-proxy.yaml /etc/kubernetes/manifests/kube-proxy.yaml",
-
-            "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/kube-podmaster.yaml",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/kube-podmaster.yaml",
-            "sudo mv /tmp/kube-podmaster.yaml /etc/kubernetes/manifests/kube-podmaster.yaml",
-
-            "sudo mkdir -p /srv/kubernetes/manifests",
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-controller-manager.yaml",
-            "sudo mv /tmp/kube-controller-manager.yaml /srv/kubernetes/manifests/kube-controller-manager.yaml",
-
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-scheduler.yaml",
-            "sudo mv /tmp/kube-scheduler.yaml /srv/kubernetes/manifests/kube-scheduler.yaml",
-
-            "sudo systemctl daemon-reload",
-            "curl -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' \"$ETCD_SERVER/v2/keys/coreos.com/network/config\"",
-            "sudo systemctl start flanneld",
-            "sudo systemctl enable flanneld",
-            "sudo systemctl start kubelet",
-            "sudo systemctl enable kubelet"
-        ]
+data "template_file" "master_yaml" {
+    template = "${file("${path.module}/master/master.yaml")}"
+    vars {
+        DNS_SERVICE_IP = "10.3.0.10"
+        ETCD_IP = "${aws_instance.master.private_ip}"
+        POD_NETWORK = "10.2.0.0/16"
+        SERVICE_IP_RANGE = "10.3.0.0/24"
+        HYPERKUBE_VERSION = "${var.kube_version}"
     }
 }
-
-# "until $(curl -o /dev/null -sf http://127.0.0.1:8080/version); do printf 'curl not responding...'; sleep 5; done",
-# "curl -X POST -d '{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"name\":\"kube-system\"}}' \"http://127.0.0.1:8080/api/v1/namespaces\""

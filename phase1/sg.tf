@@ -3,7 +3,7 @@
 ########################
 resource "aws_security_group" "k8s-master" {
     vpc_id = "${aws_vpc.kubernetes.id}"
-    name = "kubernetes-api"
+    name = "k8s-master"
 
     # Allow inbound traffic to the port used by Kubernetes API HTTPS
     ingress {
@@ -28,9 +28,9 @@ resource "aws_security_group" "k8s-master" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 }
-resource "aws_security_group" "kubernetes" {
+resource "aws_security_group" "k8s-worker" {
     vpc_id = "${aws_vpc.kubernetes.id}"
-    name = "kubernetes"
+    name = "k8s-worker"
 
     # Allow all outbound
     egress {

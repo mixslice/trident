@@ -1,6 +1,7 @@
 variable "access_key" {}
 variable "secret_key" {}
 
+variable "ssh_key_name" {}
 variable "ssh_public_key" {}
 variable "ssh_private_key_path" {}
 

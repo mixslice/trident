@@ -13,12 +13,12 @@ resource "aws_instance" "worker" {
         volume_size = "${var.worker_volume_size}"
     }
 
-    vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
+    vpc_security_group_ids = ["${aws_security_group.k8s-worker.id}"]
     subnet_id = "${aws_subnet.kubernetes.id}"
     associate_public_ip_address = true
     iam_instance_profile = "${aws_iam_instance_profile.worker_profile.name}"
 
-    key_name = "${aws_key_pair.ssh_key.key_name}"
+    key_name = "${var.ssh_key_name}"
 
     tags {
       Name = "k8s-worker-${count.index}"
@@ -31,8 +31,6 @@ output "kubernetes_workers_public_ip" {
 
 resource "null_resource" "worker" {
     count = "${var.worker_count}"
-
-    depends_on = ["null_resource.master"]
 
     triggers {
         etcd_endpoints = "${join(",", formatlist("http://%s:2379", aws_instance.master.*.private_ip))}"
