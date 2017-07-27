@@ -19,7 +19,7 @@ resource "template_file" "cloud_init" {
 resource "null_resource" "addons" {
     depends_on = ["null_resource.worker"]
 
-    provisioner "local-exec" {
-        command = "until $(kubectl create -f addons/ > /dev/null); do sleep 10; done"
-    }
+    # provisioner "local-exec" {
+    #     command = "until $(kubectl create -f addons/ > /dev/null); do sleep 10; done"
+    # }
 }

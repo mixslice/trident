@@ -6,7 +6,7 @@ resource "aws_elb" "kube_master" {
 
     instances = ["${aws_instance.master.*.id}"]
     subnets = ["${aws_instance.master.*.subnet_id}"]
-    security_groups = ["${aws_security_group.kubernetes_api.id}"]
+    security_groups = ["${aws_security_group.k8s-master.id}"]
     cross_zone_load_balancing = false
 
     listener {

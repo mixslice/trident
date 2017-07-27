@@ -1,7 +1,7 @@
 ########################
 # Security groups
 ########################
-resource "aws_security_group" "kubernetes_api" {
+resource "aws_security_group" "k8s-master" {
     vpc_id = "${aws_vpc.kubernetes.id}"
     name = "kubernetes-api"
 
@@ -53,7 +53,7 @@ resource "aws_security_group" "kubernetes" {
         from_port = 0
         to_port = 0
         protocol = "-1"
-        security_groups = ["${aws_security_group.kubernetes_api.id}"]
+        security_groups = ["${aws_security_group.k8s-master.id}"]
     }
 
     # Allow all traffic from control host IP
