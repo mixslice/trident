@@ -17,7 +17,7 @@ resource "aws_instance" "master" {
     subnet_id = "${aws_subnet.kubernetes.id}"
     associate_public_ip_address = true
     iam_instance_profile = "${aws_iam_instance_profile.master_profile.name}"
-    user_data = "${file("${path.module}/master/master.yaml")}"
+    user_data = "${data.template_file.master_yaml.rendered}"
     key_name = "${var.ssh_key_name}"
 
     connection {
@@ -139,10 +139,10 @@ output "kubernetes_master_public_ip" {
 }
 
 data "template_file" "master_yaml" {
-    template = "${file("${path.module}/master/master.yaml")}"
+    template = "${file("${path.module}/k8s/master.yaml")}"
     vars {
         DNS_SERVICE_IP = "10.3.0.10"
-        ETCD_IP = "${aws_instance.master.private_ip}"
+        ETCD_IP = "127.0.0.1"
         POD_NETWORK = "10.2.0.0/16"
         SERVICE_IP_RANGE = "10.3.0.0/24"
         HYPERKUBE_VERSION = "${var.kube_version}"
