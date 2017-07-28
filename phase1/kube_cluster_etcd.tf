@@ -70,3 +70,7 @@ EOF
         Name = "k8s-etcd"
     }
 }
+
+output "kubernetes_etcd_public_ips" {
+    value = "${join(",", aws_instance.etcd.*.public_ip)}"
+}
