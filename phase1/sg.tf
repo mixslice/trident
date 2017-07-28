@@ -4,14 +4,7 @@
 resource "aws_security_group" "k8s-master" {
     vpc_id = "${aws_vpc.kubernetes.id}"
     name = "k8s-master"
-
-    # Allow inbound traffic to the port used by Kubernetes API HTTPS
-    ingress {
-        from_port = "${var.k8s_api_port}"
-        to_port = "${var.k8s_api_port}"
-        protocol = "TCP"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+    
     # TODO: actually make this accept only ssh
     ingress {
         from_port = 0

@@ -26,6 +26,17 @@ resource "aws_instance" "worker" {
         private_key = "${file(var.ssh_private_key_path)}"
     }
 
+    # Provision hyperkube
+    provisioner "remote-exec" {
+        inline = [
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/flannel_${var.flannel_version}.aci",
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.aci",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.tar | docker load -q",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pause-amd64_${var.pause_version}.tar | docker load -q"
+        ]
+    }
     # Generate k8s_worker client certificate
     provisioner "local-exec" {
         command = <<EOF
@@ -80,8 +91,9 @@ data "template_file" "worker_yaml" {
     template = "${file("${path.module}/k8s/worker.yaml")}"
     vars {
         DNS_SERVICE_IP = "10.3.0.10"
-        ETCD_IP = "${aws_instance.master.private_ip}"
+        ETCD_IP = "${aws_instance.etcd.private_ip}"
         MASTER_HOST = "${aws_instance.master.private_ip}"
+        HYPERKUBE_IMAGE = "${var.kube_image}"
         HYPERKUBE_VERSION = "${var.kube_version}"
     }
 }

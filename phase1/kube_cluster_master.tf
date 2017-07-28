@@ -21,54 +21,22 @@ resource "aws_instance" "master" {
     key_name = "${var.ssh_key_name}"
 
     connection {
-        type = "ssh",
-        user = "core",
-        private_key = "${file(var.ssh_private_key_path)}"
+       type = "ssh",
+       user = "core",
+       private_key = "${file(var.ssh_private_key_path)}"
     }
-
-    # Generate the Certificate Authority
-    provisioner "local-exec" {
-        command = <<EOF
-            ${path.module}/cfssl/generate_ca.sh
-EOF
-    }
-    # Generate k8s-etcd server certificate
-    provisioner "local-exec" {
-        command = <<EOF
-            ${path.module}/cfssl/generate_server.sh k8s_etcd ${self.private_ip}
-EOF
-    }
-    #
-    provisioner "file" {
-        source = "./secrets/ca.pem"
-        destination = "/home/core/ca.pem"
-    }
-    provisioner "file" {
-        source = "./secrets/k8s_etcd.pem"
-        destination = "/home/core/etcd.pem"
-    }
-    provisioner "file" {
-        source = "./secrets/k8s_etcd-key.pem"
-        destination = "/home/core/etcd-key.pem"
-    }
-
-    # TODO: figure out etcd2 user and chown, chmod key.pem files
+    # Provision hyperkube
     provisioner "remote-exec" {
         inline = [
-            "sudo mkdir -p /etc/kubernetes/ssl",
-            "sudo mv /home/core/{ca,etcd,etcd-key}.pem /etc/kubernetes/ssl/.",
-            "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem ",
-            "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/flannel_${var.flannel_version}.aci",
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.aci",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.tar | docker load -q",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pause-amd64_${var.pause_version}.tar | docker load -q"
         ]
     }
 
-    # Start etcd2
-    provisioner "remote-exec" {
-        inline = [
-            "sudo systemctl start etcd2",
-            "sudo systemctl enable etcd2",
-        ]
-    }
 
     # Generate k8s_master server certificate
     provisioner "local-exec" {
@@ -122,7 +90,7 @@ EOF
     provisioner "remote-exec" {
         inline = [
             "sudo systemctl daemon-reload",
-            "curl --cacert /etc/kubernetes/ssl/ca.pem --cert /etc/kubernetes/ssl/client.pem --key /etc/kubernetes/ssl/client-key.pem -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' https://${self.private_ip}:2379/v2/keys/coreos.com/network/config",
+            "curl --cacert /etc/kubernetes/ssl/ca.pem --cert /etc/kubernetes/ssl/client.pem --key /etc/kubernetes/ssl/client-key.pem -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' https://${aws_instance.etcd.private_ip}:2379/v2/keys/coreos.com/network/config",
             "sudo systemctl start flanneld",
             "sudo systemctl enable flanneld",
             "sudo systemctl start kubelet",
@@ -130,7 +98,7 @@ EOF
         ]
     }
     tags {
-      Name = "k8s-master"
+      Name = "k8s-master-${count.index}"
     }
 }
 
@@ -142,9 +110,10 @@ data "template_file" "master_yaml" {
     template = "${file("${path.module}/k8s/master.yaml")}"
     vars {
         DNS_SERVICE_IP = "10.3.0.10"
-        ETCD_IP = "127.0.0.1"
+        ETCD_IP = "${aws_instance.etcd.private_ip}"
         POD_NETWORK = "10.2.0.0/16"
         SERVICE_IP_RANGE = "10.3.0.0/24"
+        HYPERKUBE_IMAGE = "${var.kube_image}"
         HYPERKUBE_VERSION = "${var.kube_version}"
     }
 }
