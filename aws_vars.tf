@@ -22,7 +22,7 @@ variable "amis" {
 }
 
 variable "etcd_instance_type" {
-  default = "m3.medium"
+  default = "t2.micro"
 }
 
 variable "master_instance_type" {
