@@ -37,7 +37,7 @@ write_files:
           --anonymous-auth=false \
           --client-ca-file=/etc/kubernetes/ssl/ca.pem \
           --api-servers=http://127.0.0.1:8080 \
-          --network-plugin-dir=/etc/kubernetes/cni/net.d \
+          --cni-conf-dir=/etc/kubernetes/cni/net.d \
           --register-schedulable=false \
           --container-runtime=docker \
           --allow-privileged=true \
@@ -63,7 +63,7 @@ write_files:
           hostNetwork: true
           containers:
           - name: kube-apiserver
-            image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/hyperkube:${HYPERKUBE_VERSION}
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
             command:
             - /hyperkube
             - apiserver
@@ -85,6 +85,8 @@ write_files:
             - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
             - --runtime-config=extensions/v1beta1/networkpolicies=true
             - --anonymous-auth=false
+            - --storage-backend=etcd2
+            - --storage-media-type=application/json
             livenessProbe:
               httpGet:
                 host: 127.0.0.1
@@ -125,7 +127,7 @@ write_files:
           hostNetwork: true
           containers:
           - name: kube-proxy
-            image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/hyperkube:${HYPERKUBE_VERSION}
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
             command:
             - /hyperkube
             - proxy
@@ -153,7 +155,7 @@ write_files:
           hostNetwork: true
           containers:
           - name: kube-controller-manager
-            image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/hyperkube:${HYPERKUBE_VERSION}
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
             command:
             - /hyperkube
             - controller-manager
@@ -194,7 +196,7 @@ write_files:
           hostNetwork: true
           containers:
           - name: kube-scheduler
-            image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/hyperkube:${HYPERKUBE_VERSION}
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
             command:
             - /hyperkube
             - scheduler
