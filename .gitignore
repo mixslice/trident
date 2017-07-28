@@ -1,2 +1,2 @@
-/cert
-ssh.cfg
+**/certs
+**/*.tfstate
