@@ -16,4 +16,4 @@ vpc_cidr = "10.0.0.0/16"
 # This should be the address of your control machine
 control_cidr = "0.0.0.0/0"
 
-kube_version = "v1.6.1_coreos.0"
+kube_version = "v1.7.1_coreos.0"
