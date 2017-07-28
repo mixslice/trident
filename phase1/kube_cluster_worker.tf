@@ -13,13 +13,71 @@ resource "aws_instance" "worker" {
         volume_size = "${var.worker_volume_size}"
     }
 
-    vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
+    vpc_security_group_ids = ["${aws_security_group.k8s-worker.id}"]
     subnet_id = "${aws_subnet.kubernetes.id}"
     associate_public_ip_address = true
     iam_instance_profile = "${aws_iam_instance_profile.worker_profile.name}"
+    user_data = "${data.template_file.worker_yaml.rendered}"
+    key_name = "${var.ssh_key_name}"
 
-    key_name = "${aws_key_pair.ssh_key.key_name}"
+    connection {
+        type = "ssh",
+        user = "core",
+        private_key = "${file(var.ssh_private_key_path)}"
+    }
 
+    # Provision hyperkube
+    provisioner "remote-exec" {
+        inline = [
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/flannel_${var.flannel_version}.aci",
+            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.aci",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.tar | docker load -q",
+
+            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pause-amd64_${var.pause_version}.tar | docker load -q"
+        ]
+    }
+    # Generate k8s_worker client certificate
+    provisioner "local-exec" {
+        command = <<EOF
+            ${path.module}/cfssl/generate_client.sh k8s_worker
+EOF
+    }
+
+    # Provision k8s_master client certificate
+    provisioner "file" {
+        source = "./secrets/ca.pem"
+        destination = "/home/core/ca.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/client-k8s_worker.pem"
+        destination = "/home/core/worker.pem"
+    }
+    provisioner "file" {
+        source = "./secrets/client-k8s_worker-key.pem"
+        destination = "/home/core/worker-key.pem"
+    }
+
+    # TODO: permissions on these keys
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /etc/kubernetes/ssl",
+            "sudo cp /home/core/{ca,worker,worker-key}.pem /etc/kubernetes/ssl/.",
+            "sudo mkdir -p /etc/ssl/etcd/",
+            "sudo mv /home/core/{ca,worker,worker-key}.pem /etc/ssl/etcd/."
+        ]
+    }
+
+    # Start kubelet
+    provisioner "remote-exec" {
+        inline = [
+            "sudo systemctl daemon-reload",
+            "sudo systemctl start flanneld",
+            "sudo systemctl enable flanneld",
+            "sudo systemctl start kubelet",
+            "sudo systemctl enable kubelet"
+        ]
+    }
     tags {
       Name = "k8s-worker-${count.index}"
     }
@@ -29,72 +87,13 @@ output "kubernetes_workers_public_ip" {
     value = "${join(",", aws_instance.worker.*.public_ip)}"
 }
 
-resource "null_resource" "worker" {
-    count = "${var.worker_count}"
-
-    depends_on = ["null_resource.master"]
-
-    triggers {
-        etcd_endpoints = "${join(",", formatlist("http://%s:2379", aws_instance.master.*.private_ip))}"
-    }
-    # Tell terraform how to connect to these instances
-    connection {
-        host = "${element(aws_instance.worker.*.public_ip, count.index)}"
-        type = "ssh"
-        user = "core"
-        private_key = "${file(var.ssh_private_key_path)}"
-    }
-
-    # Move local files to machines
-    provisioner "file" {
-        source = "openssl/certs"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source = "shared/"
-        destination = "/tmp"
-    }
-
-    provisioner "file" {
-        source = "worker/"
-        destination = "/tmp"
-    }
-
-    # Set up worker node
-    provisioner "remote-exec" {
-        inline = [
-            "sudo mkdir -p /etc/kubernetes/ssl",
-            "sudo mv /tmp/certs/ca.pem /etc/kubernetes/ssl/ca.pem",
-            "sudo mv /tmp/certs/worker.pem /etc/kubernetes/ssl/worker.pem",
-            "sudo mv /tmp/certs/worker-key.pem /etc/kubernetes/ssl/worker-key.pem",
-            "rm -R /tmp/certs",
-            "sudo chmod 600 /etc/kubernetes/ssl/*-key.pem",
-            "sudo chown root:root /etc/kubernetes/ssl/*-key.pem",
-
-            "MASTER_HOST=${aws_elb.kube_master.dns_name}",
-            "ETCD_ENDPOINTS=${self.triggers.etcd_endpoints}",
-            "ADVERTISE_IP=${element(aws_instance.worker.*.private_ip, count.index)}",
-            "ADVERTISE_DNS=${element(aws_instance.worker.*.private_dns, count.index)}",
-            "sed -i \"s|<ADVERTISE_IP>|$ADVERTISE_IP|g\" /tmp/options.env",
-            "sed -i \"s|<ETCD_ENDPOINTS>|$ETCD_ENDPOINTS|g\" /tmp/options.env",
-            "sudo mkdir -p /etc/flannel",
-            "sudo mv /tmp/options.env /etc/flannel/options.env",
-            "sudo mkdir -p /etc/systemd/system/flanneld.service.d",
-            "sudo mv /tmp/40-ExecStartPre-symlink.conf /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf",
-            "sudo mkdir -p /etc/systemd/system/docker.service.d",
-            "sudo mv /tmp/40-flannel.conf /etc/systemd/system/docker.service.d/40-flannel.conf",
-            "sed -i \"s|<MASTER_HOST>|$MASTER_HOST|g\" /tmp/kubelet.service",
-            "sed -i \"s|<ADVERTISE_DNS>|$ADVERTISE_DNS|g\" /tmp/kubelet.service",
-            "sudo mv /tmp/kubelet.service /etc/systemd/system/kubelet.service",
-            "sed -i 's|<KUBE_VERSION>|${var.kube_version}|g' /tmp/kube-proxy.yaml",
-            "sed -i \"s|<MASTER_HOST>|$MASTER_HOST|g\" /tmp/kube-proxy.yaml",
-            "sudo mkdir -p /etc/kubernetes/manifests",
-            "sudo mv /tmp/kube-proxy.yaml /etc/kubernetes/manifests/kube-proxy.yaml",
-            "sudo mv /tmp/worker-kubeconfig.yaml /etc/kubernetes/worker-kubeconfig.yaml",
-            "sudo systemctl daemon-reload",
-            "sudo systemctl start kubelet",
-            "sudo systemctl enable kubelet"
-        ]
+data "template_file" "worker_yaml" {
+    template = "${file("${path.module}/k8s/worker.yaml")}"
+    vars {
+        DNS_SERVICE_IP = "10.3.0.10"
+        ETCD_IP = "${aws_instance.etcd.private_ip}"
+        MASTER_HOST = "${aws_instance.master.private_ip}"
+        HYPERKUBE_IMAGE = "${var.kube_image}"
+        HYPERKUBE_VERSION = "${var.kube_version}"
     }
 }
