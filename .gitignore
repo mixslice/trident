@@ -1,2 +1,12 @@
-**/certs
-**/*.tfstate
+# This directory is meant for TLS/SSL assets
+secrets/
+
+# This one is consequence of the TLS/SSL assets generation
+.srl
+
+# Terraform assets
+*.tfstate
+*.tfstate.backup
+
+# terraform bin
+terraform
