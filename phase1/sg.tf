@@ -3,15 +3,8 @@
 ########################
 resource "aws_security_group" "k8s-master" {
     vpc_id = "${aws_vpc.kubernetes.id}"
-    name = "kubernetes-api"
-
-    # Allow inbound traffic to the port used by Kubernetes API HTTPS
-    ingress {
-        from_port = "${var.k8s_api_port}"
-        to_port = "${var.k8s_api_port}"
-        protocol = "TCP"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+    name = "k8s-master"
+    
     # TODO: actually make this accept only ssh
     ingress {
         from_port = 0
@@ -28,9 +21,9 @@ resource "aws_security_group" "k8s-master" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 }
-resource "aws_security_group" "kubernetes" {
+resource "aws_security_group" "k8s-worker" {
     vpc_id = "${aws_vpc.kubernetes.id}"
-    name = "kubernetes"
+    name = "k8s-worker"
 
     # Allow all outbound
     egress {

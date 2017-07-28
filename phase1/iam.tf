@@ -2,7 +2,7 @@
 # IAM roles creation
 ############################################
 resource "aws_iam_role" "master_role" {
-    name = "master_role"
+    name = "k8s-master"
     assume_role_policy = "${file("iam/kubernetes-master-role.json")}"
 }
 
@@ -18,7 +18,7 @@ resource "aws_iam_instance_profile" "master_profile" {
 }
 
 resource "aws_iam_role" "worker_role" {
-    name = "worker_role"
+    name = "k8s-worker"
     assume_role_policy = "${file("iam/kubernetes-worker-role.json")}"
 }
 
