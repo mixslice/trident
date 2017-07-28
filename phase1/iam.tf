@@ -1,63 +1,34 @@
-##########################
-# IAM: Policies and Roles
-##########################
-
-# The following Roles and Policy are mostly for future use
-
-resource "aws_iam_role" "kubernetes" {
-  name = "kubernetes"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com.cn"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+############################################
+# IAM roles creation
+############################################
+resource "aws_iam_role" "master_role" {
+    name = "k8s-master"
+    assume_role_policy = "${file("iam/kubernetes-master-role.json")}"
 }
 
-# Role policy
-resource "aws_iam_role_policy" "kubernetes" {
-  name = "kubernetes"
-  role = "${aws_iam_role.kubernetes.id}"
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action" : ["ec2:*"],
-      "Effect": "Allow",
-      "Resource": ["*"]
-    },
-    {
-      "Action" : ["elasticloadbalancing:*"],
-      "Effect": "Allow",
-      "Resource": ["*"]
-    },
-    {
-      "Action": "route53:*",
-      "Effect": "Allow",
-      "Resource": ["*"]
-    },
-    {
-      "Action": "ecr:*",
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+resource "aws_iam_role_policy" "master_policy" {
+    name = "master_policy"
+    role = "${aws_iam_role.master_role.id}"
+    policy = "${file("iam/kubernetes-master-policy.json")}"
 }
 
+resource "aws_iam_instance_profile" "master_profile" {
+    name = "master_profile"
+    role = "${aws_iam_role.master_role.name}"
+}
 
-# IAM Instance Profile for Controller
-resource  "aws_iam_instance_profile" "kubernetes" {
- name = "kubernetes"
- role = "${aws_iam_role.kubernetes.name}"
+resource "aws_iam_role" "worker_role" {
+    name = "k8s-worker"
+    assume_role_policy = "${file("iam/kubernetes-worker-role.json")}"
+}
+
+resource "aws_iam_role_policy" "worker_policy" {
+    name = "worker_policy"
+    role = "${aws_iam_role.worker_role.id}"
+    policy = "${file("iam/kubernetes-worker-policy.json")}"
+}
+
+resource "aws_iam_instance_profile" "worker_profile" {
+    name = "worker_profile"
+    role = "${aws_iam_role.worker_role.name}"
 }

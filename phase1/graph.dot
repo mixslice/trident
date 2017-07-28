@@ -1,0 +1,95 @@
+digraph {
+	compound = "true"
+	newrank = "true"
+	subgraph "root" {
+		"[root] aws_iam_instance_profile.master_profile" [label = "aws_iam_instance_profile.master_profile", shape = "box"]
+		"[root] aws_iam_instance_profile.worker_profile" [label = "aws_iam_instance_profile.worker_profile", shape = "box"]
+		"[root] aws_iam_role.master_role" [label = "aws_iam_role.master_role", shape = "box"]
+		"[root] aws_iam_role.worker_role" [label = "aws_iam_role.worker_role", shape = "box"]
+		"[root] aws_iam_role_policy.master_policy" [label = "aws_iam_role_policy.master_policy", shape = "box"]
+		"[root] aws_iam_role_policy.worker_policy" [label = "aws_iam_role_policy.worker_policy", shape = "box"]
+		"[root] aws_instance.etcd" [label = "aws_instance.etcd", shape = "box"]
+		"[root] aws_instance.master" [label = "aws_instance.master", shape = "box"]
+		"[root] aws_instance.worker" [label = "aws_instance.worker", shape = "box"]
+		"[root] aws_internet_gateway.gw" [label = "aws_internet_gateway.gw", shape = "box"]
+		"[root] aws_route_table.kubernetes" [label = "aws_route_table.kubernetes", shape = "box"]
+		"[root] aws_route_table_association.kubernetes" [label = "aws_route_table_association.kubernetes", shape = "box"]
+		"[root] aws_security_group.k8s-master" [label = "aws_security_group.k8s-master", shape = "box"]
+		"[root] aws_security_group.k8s-worker" [label = "aws_security_group.k8s-worker", shape = "box"]
+		"[root] aws_subnet.kubernetes" [label = "aws_subnet.kubernetes", shape = "box"]
+		"[root] aws_vpc.kubernetes" [label = "aws_vpc.kubernetes", shape = "box"]
+		"[root] data.template_file.master_yaml" [label = "data.template_file.master_yaml", shape = "box"]
+		"[root] data.template_file.worker_yaml" [label = "data.template_file.worker_yaml", shape = "box"]
+		"[root] provider.aws" [label = "provider.aws", shape = "diamond"]
+		"[root] provider.template" [label = "provider.template", shape = "diamond"]
+		"[root] aws_iam_instance_profile.master_profile" -> "[root] aws_iam_role.master_role"
+		"[root] aws_iam_instance_profile.worker_profile" -> "[root] aws_iam_role.worker_role"
+		"[root] aws_iam_role.master_role" -> "[root] provider.aws"
+		"[root] aws_iam_role.worker_role" -> "[root] provider.aws"
+		"[root] aws_iam_role_policy.master_policy" -> "[root] aws_iam_role.master_role"
+		"[root] aws_iam_role_policy.worker_policy" -> "[root] aws_iam_role.worker_role"
+		"[root] aws_instance.etcd" -> "[root] aws_iam_instance_profile.master_profile"
+		"[root] aws_instance.etcd" -> "[root] aws_security_group.k8s-master"
+		"[root] aws_instance.etcd" -> "[root] aws_subnet.kubernetes"
+		"[root] aws_instance.etcd" -> "[root] var.amis"
+		"[root] aws_instance.etcd" -> "[root] var.etcd_count"
+		"[root] aws_instance.etcd" -> "[root] var.etcd_instance_type"
+		"[root] aws_instance.etcd" -> "[root] var.etcd_volumn_size"
+		"[root] aws_instance.etcd" -> "[root] var.ssh_key_name"
+		"[root] aws_instance.etcd" -> "[root] var.ssh_private_key_path"
+		"[root] aws_instance.master" -> "[root] data.template_file.master_yaml"
+		"[root] aws_instance.master" -> "[root] var.flannel_version"
+		"[root] aws_instance.master" -> "[root] var.master_count"
+		"[root] aws_instance.master" -> "[root] var.master_instance_type"
+		"[root] aws_instance.master" -> "[root] var.master_volume_size"
+		"[root] aws_instance.master" -> "[root] var.pause_version"
+		"[root] aws_instance.worker" -> "[root] aws_iam_instance_profile.worker_profile"
+		"[root] aws_instance.worker" -> "[root] aws_security_group.k8s-worker"
+		"[root] aws_instance.worker" -> "[root] data.template_file.worker_yaml"
+		"[root] aws_instance.worker" -> "[root] var.worker_count"
+		"[root] aws_instance.worker" -> "[root] var.worker_instance_type"
+		"[root] aws_instance.worker" -> "[root] var.worker_volume_size"
+		"[root] aws_internet_gateway.gw" -> "[root] aws_vpc.kubernetes"
+		"[root] aws_route_table.kubernetes" -> "[root] aws_internet_gateway.gw"
+		"[root] aws_route_table_association.kubernetes" -> "[root] aws_route_table.kubernetes"
+		"[root] aws_route_table_association.kubernetes" -> "[root] aws_subnet.kubernetes"
+		"[root] aws_security_group.k8s-master" -> "[root] aws_vpc.kubernetes"
+		"[root] aws_security_group.k8s-worker" -> "[root] aws_security_group.k8s-master"
+		"[root] aws_security_group.k8s-worker" -> "[root] var.control_cidr"
+		"[root] aws_subnet.kubernetes" -> "[root] aws_vpc.kubernetes"
+		"[root] aws_vpc.kubernetes" -> "[root] provider.aws"
+		"[root] aws_vpc.kubernetes" -> "[root] var.vpc_cidr"
+		"[root] data.template_file.master_yaml" -> "[root] aws_instance.etcd"
+		"[root] data.template_file.master_yaml" -> "[root] provider.template"
+		"[root] data.template_file.master_yaml" -> "[root] var.kube_image"
+		"[root] data.template_file.master_yaml" -> "[root] var.kube_version"
+		"[root] data.template_file.worker_yaml" -> "[root] aws_instance.master"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] aws_iam_role_policy.master_policy"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] aws_iam_role_policy.worker_policy"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] aws_route_table_association.kubernetes"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] output.kubernetes_master_public_ip"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] output.kubernetes_workers_public_ip"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] var.discovery_url"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] var.ssh_public_key"
+		"[root] output.kubernetes_master_public_ip" -> "[root] aws_instance.master"
+		"[root] output.kubernetes_workers_public_ip" -> "[root] aws_instance.worker"
+		"[root] provider.aws (close)" -> "[root] aws_iam_role_policy.master_policy"
+		"[root] provider.aws (close)" -> "[root] aws_iam_role_policy.worker_policy"
+		"[root] provider.aws (close)" -> "[root] aws_instance.worker"
+		"[root] provider.aws (close)" -> "[root] aws_route_table_association.kubernetes"
+		"[root] provider.aws" -> "[root] var.access_key"
+		"[root] provider.aws" -> "[root] var.region"
+		"[root] provider.aws" -> "[root] var.secret_key"
+		"[root] provider.template (close)" -> "[root] data.template_file.worker_yaml"
+		"[root] provisioner.file (close)" -> "[root] aws_instance.worker"
+		"[root] provisioner.local-exec (close)" -> "[root] aws_instance.worker"
+		"[root] provisioner.remote-exec (close)" -> "[root] aws_instance.worker"
+		"[root] root" -> "[root] meta.count-boundary (count boundary fixup)"
+		"[root] root" -> "[root] provider.aws (close)"
+		"[root] root" -> "[root] provider.template (close)"
+		"[root] root" -> "[root] provisioner.file (close)"
+		"[root] root" -> "[root] provisioner.local-exec (close)"
+		"[root] root" -> "[root] provisioner.remote-exec (close)"
+	}
+}
+

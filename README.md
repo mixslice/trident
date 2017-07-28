@@ -21,4 +21,3 @@ terraform apply
 ```
 
 ### Finally:
-Upload your **terraform.tfstate** file!!! This is very important! Otherwise Terraform will not run planning correctly.
