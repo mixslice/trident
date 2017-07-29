@@ -31,9 +31,7 @@ resource "aws_instance" "worker" {
         inline = [
             "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/flannel_${var.flannel_version}.aci",
             "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.aci",
-
             "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.tar | docker load -q",
-
             "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pause-amd64_${var.pause_version}.tar | docker load -q"
         ]
     }
