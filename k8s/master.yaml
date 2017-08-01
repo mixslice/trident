@@ -8,10 +8,13 @@ coreos:
     etcd_endpoints: https://${ETCD_IP}:2379
 
   locksmith:
-    endpoint: https://{$ETCD_IP}:2379
+    endpoint: https://${ETCD_IP}:2379
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
     etcd_certfile: /etc/kubernetes/ssl/client.pem
     etcd_keyfile: /etc/kubernetes/ssl/client-key.pem
+
+  update:
+    reboot-strategy: etcd-lock
 
   units:
     - name: kubelet.service
@@ -45,8 +48,8 @@ coreos:
           --api-servers=http://127.0.0.1:8080 \
           --cni-conf-dir=/etc/kubernetes/cni/net.d \
           --client-ca-file=/etc/kubernetes/ssl/ca.pem \
-          --cluster-dns=${ DNS_SERVICE_IP} \
-          --cluster-domain=cluster.local\
+          --cluster-dns=${DNS_SERVICE_IP} \
+          --cluster-domain=cluster.local \
           --kubeconfig=/etc/kubernetes/kubeconfig.yml \
           --node-labels node-role.kubernetes.io/master \
           --pod-manifest-path=/etc/kubernetes/manifests
@@ -71,6 +74,19 @@ coreos:
               '{ "Network": "${ POD_NETWORK }", "Backend": { "Type": "vxlan" } }'
             Restart=always
             RestartSec=10
+    - name: locksmithd.service
+      command: start
+      drop-ins:
+        - name: 50-cert-config.conf
+          content: |
+            [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
+            [Service]
+            EnvironmentFile=/etc/environment
+            Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
+            Restart=always
+            RestartSec=10
     - name: docker.service
       command: start
       drop-ins:
@@ -92,7 +108,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=curl ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | docker load -q
+        ExecStart=/bin/bash -c "/bin/curl -sL ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | /usr/bin/docker load -q"
     - name: prefetch-flannel.service
       command: start
       content: |
@@ -127,7 +143,7 @@ coreos:
         RemainAfterExit=yes
         ExecStartPre=${DOCKER_LOGIN_CMD}
         ExecStartPre=/usr/bin/docker pull ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION}
-        ExecStart=docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+        ExecStart=/usr/bin/docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
 
 write_files:
   - path: "/etc/environment"

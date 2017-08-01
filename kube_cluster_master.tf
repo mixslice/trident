@@ -26,20 +26,6 @@ resource "aws_instance" "master" {
        private_key = "${file(var.ssh_private_key_path)}"
     }
 
-    # Provision hyperkube
-    # provisioner "remote-exec" {
-    #     inline = [
-    #         "${file("${path.module}/secrets/docker_login")}",
-    #         "rkt fetch --insecure-options=all ${var.s3_location}/flannel_${var.flannel_version}.aci",
-    #         "rkt fetch --insecure-options=all ${var.s3_location}/hyperkube_${var.kube_version}.aci",
-    #
-    #         "docker pull ${var.ecr_location}/hyperkube_${var.kube_version}",
-    #
-    #         "curl ${var.s3_location}/pause-amd64_${var.pause_version}.tar | docker load -q"
-    #     ]
-    # }
-
-
     # Generate k8s_master server certificate
     provisioner "local-exec" {
         command = <<EOF
@@ -80,10 +66,7 @@ EOF
     provisioner "remote-exec" {
         inline = [
             "sudo mkdir -p /etc/kubernetes/ssl",
-            "sudo cp /home/core/{ca,apiserver,apiserver-key,client,client-key}.pem /etc/kubernetes/ssl/.",
-            "rm /home/core/{apiserver,apiserver-key}.pem",
-            "sudo mkdir -p /etc/ssl/etcd",
-            "sudo mv /home/core/{ca,client,client-key}.pem /etc/ssl/etcd/.",
+            "sudo mv /home/core/{ca,apiserver,apiserver-key,client,client-key}.pem /etc/kubernetes/ssl/.",
         ]
     }
 
