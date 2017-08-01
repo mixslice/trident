@@ -8,6 +8,9 @@ variable "ssh_private_key_path" {}
 variable "vpc_cidr" {}
 variable "control_cidr" {}
 
+variable "s3_location" {}
+variable "ecr_location" {}
+
 variable "region" {
     description = "The region to which you want to deploy"
     default = "cn-north-1"
