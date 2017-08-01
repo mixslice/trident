@@ -7,7 +7,7 @@ coreos:
     etcd_keyfile: /etc/kubernetes/ssl/worker-key.pem
     etcd_endpoints: https://${ETCD_IP}:2379
   locksmith:
-    endpoint: https://{$ETCD_IP}:2379
+    endpoint: https://${ETCD_IP}:2379
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
     etcd_certfile: /etc/kubernetes/ssl/worker.pem
     etcd_keyfile: /etc/kubernetes/ssl/worker-key.pem
