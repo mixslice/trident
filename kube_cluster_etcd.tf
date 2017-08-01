@@ -51,6 +51,7 @@ EOF
         source = "./secrets/k8s_etcd-key.pem"
         destination = "/home/core/etcd-key.pem"
     }
+    # Move certificates
     provisioner "remote-exec" {
         inline = [
             "sudo mkdir -p /etc/kubernetes/ssl",

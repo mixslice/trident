@@ -25,17 +25,19 @@ resource "aws_instance" "master" {
        user = "core",
        private_key = "${file(var.ssh_private_key_path)}"
     }
+
     # Provision hyperkube
-    provisioner "remote-exec" {
-        inline = [
-            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/flannel_${var.flannel_version}.aci",
-            "rkt fetch --insecure-options=all https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.aci",
-
-            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/hyperkube_${var.kube_version}.tar | docker load -q",
-
-            "curl https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pause-amd64_${var.pause_version}.tar | docker load -q"
-        ]
-    }
+    # provisioner "remote-exec" {
+    #     inline = [
+    #         "${file("${path.module}/secrets/docker_login")}",
+    #         "rkt fetch --insecure-options=all ${var.s3_location}/flannel_${var.flannel_version}.aci",
+    #         "rkt fetch --insecure-options=all ${var.s3_location}/hyperkube_${var.kube_version}.aci",
+    #
+    #         "docker pull ${var.ecr_location}/hyperkube_${var.kube_version}",
+    #
+    #         "curl ${var.s3_location}/pause-amd64_${var.pause_version}.tar | docker load -q"
+    #     ]
+    # }
 
 
     # Generate k8s_master server certificate
@@ -74,8 +76,7 @@ EOF
         source = "./secrets/client-k8s_master-key.pem"
         destination = "/home/core/client-key.pem"
     }
-
-    # TODO: figure out permissions and chown, chmod key.pem files
+    # Move certificate into kubernetes/ssl
     provisioner "remote-exec" {
         inline = [
             "sudo mkdir -p /etc/kubernetes/ssl",
@@ -86,17 +87,6 @@ EOF
         ]
     }
 
-    # Start kubelet and create kube-system namespace
-    provisioner "remote-exec" {
-        inline = [
-            "sudo systemctl daemon-reload",
-            "curl --cacert /etc/kubernetes/ssl/ca.pem --cert /etc/kubernetes/ssl/client.pem --key /etc/kubernetes/ssl/client-key.pem -X PUT -d 'value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}' https://${aws_instance.etcd.private_ip}:2379/v2/keys/coreos.com/network/config",
-            "sudo systemctl start flanneld",
-            "sudo systemctl enable flanneld",
-            "sudo systemctl start kubelet",
-            "sudo systemctl enable kubelet"
-        ]
-    }
     tags {
       Name = "k8s-master-${count.index}"
     }
@@ -106,14 +96,28 @@ output "kubernetes_master_public_ip" {
     value = "${join(",", aws_instance.master.*.public_ip)}"
 }
 
-data "template_file" "master_yaml" {
-    template = "${file("${path.module}/k8s/master.yaml")}"
-    vars {
-        DNS_SERVICE_IP = "10.3.0.10"
-        ETCD_IP = "${aws_instance.etcd.private_ip}"
-        POD_NETWORK = "10.2.0.0/16"
-        SERVICE_IP_RANGE = "10.3.0.0/24"
-        HYPERKUBE_IMAGE = "${var.kube_image}"
-        HYPERKUBE_VERSION = "${var.kube_version}"
+resource "null_resource" "ecr_credentials_gen" {
+    provisioner "local-exec" {
+        command = <<EOF
+aws ecr get-login --no-include-email --region cn-north-1 > ./secrets/docker_login
+EOF
     }
+}
+
+data "template_file" "master_yaml" {
+  depends_on = ["null_resource.ecr_credentials_gen"]
+  template = "${file("${path.module}/k8s/master.yaml")}"
+  vars {
+    DNS_SERVICE_IP = "10.3.0.10"
+    ETCD_IP = "${aws_instance.etcd.private_ip}"
+    POD_NETWORK = "10.2.0.0/16"
+    SERVICE_IP_RANGE = "10.3.0.0/24"
+    DOCKER_LOGIN_CMD = "${file("${path.module}/secrets/docker_login")}"
+    S3_LOCATION = "${var.s3_location}"
+    FLANNEL_VERSION = "${var.flannel_version}"
+    PAUSE_VERSION = "${var.pause_version}"
+    HYPERKUBE_ECR_LOCATION= "${var.ecr_location}"
+    HYPERKUBE_IMAGE = "${var.kube_image}"
+    HYPERKUBE_VERSION = "${var.kube_version}"
+  }
 }
