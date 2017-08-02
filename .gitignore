@@ -9,4 +9,5 @@ secrets/
 *.tfstate.backup
 
 # terraform bin
+.terraform
 terraform
