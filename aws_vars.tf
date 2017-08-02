@@ -19,8 +19,8 @@ variable "region" {
 variable "amis" {
   type = "map"
   default = {
-  # coreOS
-  cn-north-1 = "ami-ca5c8da7"
+    # coreOS
+    cn-north-1 = "ami-ca5c8da7"
   }
 }
 
