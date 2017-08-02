@@ -1,3 +1,0 @@
-# Secrets directory
-
-TLS assets

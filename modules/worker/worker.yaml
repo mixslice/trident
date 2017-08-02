@@ -24,6 +24,8 @@ coreos:
             [Service]
             EnvironmentFile=/etc/environment
             Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
+            ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config \
+              '{ "Network": "${ POD_NETWORK }", "Backend": { "Type": "vxlan" } }'
             Restart=always
             RestartSec=10
     - name: docker.service
@@ -47,18 +49,18 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=curl ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | docker load -q
+        ExecStart=/bin/bash -c "/bin/curl -sL ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | /usr/bin/docker load -q"
     - name: prefetch-flannel.service
       command: start
       content: |
-      [Unit]
-      After=network-online.target
-      Requires=network-online.target
-      Description=Prefetch flannel
-      [Service]
-      Type=oneshot
-      RemainAfterExit=yes
-      ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/flannel_${FLANNEL_VERSION}.aci
+        [Unit]
+        After=network-online.target
+        Requires=network-online.target
+        Description=Prefetch flannel
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/flannel_${FLANNEL_VERSION}.aci
     - name: prefetch-rkt-hyperkube.service
       command: start
       content: |
@@ -82,7 +84,7 @@ coreos:
         RemainAfterExit=yes
         ExecStartPre=${DOCKER_LOGIN_CMD}
         ExecStartPre=/usr/bin/docker pull ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION}
-        ExecStart=docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+        ExecStart=/usr/bin/docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
 
 write_files:
   - path: "/etc/environment"
@@ -90,11 +92,11 @@ write_files:
     content: |
       COREOS_PRIVATE_IPV4=$private_ipv4
       ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCD_CERT_FILE=/etc/kubernetes/ssl/worker.pem
-      ETCD_KEY_FILE=/etc/kubernetes/ssl/worker-key.pem
+      ETCD_CERT_FILE=/etc/kubernetes/ssl/client.pem
+      ETCD_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
       ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/worker.pem
-      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/worker-key.pem
+      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/client.pem
+      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
       ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
   - path: "/etc/systemd/system/kubelet.service"
     permissions: "0755"

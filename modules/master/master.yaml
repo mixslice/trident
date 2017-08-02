@@ -77,11 +77,11 @@ coreos:
     - name: locksmithd.service
       command: start
       drop-ins:
-        - name: 50-cert-config.conf
+        - name: 01-wait-for-certs.conf
           content: |
             [Unit]
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
             [Service]
             EnvironmentFile=/etc/environment
             Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
