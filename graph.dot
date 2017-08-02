@@ -34,7 +34,7 @@ digraph {
 		"[root] aws_instance.etcd" -> "[root] var.amis"
 		"[root] aws_instance.etcd" -> "[root] var.etcd_count"
 		"[root] aws_instance.etcd" -> "[root] var.etcd_instance_type"
-		"[root] aws_instance.etcd" -> "[root] var.etcd_volumn_size"
+		"[root] aws_instance.etcd" -> "[root] var.etcd_volume_size"
 		"[root] aws_instance.etcd" -> "[root] var.ssh_key_name"
 		"[root] aws_instance.etcd" -> "[root] var.ssh_private_key_path"
 		"[root] aws_instance.master" -> "[root] data.template_file.master_yaml"

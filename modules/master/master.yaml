@@ -1,0 +1,317 @@
+#cloud-config
+coreos:
+  flannel:
+    interface: $private_ipv4
+    etcd_cafile: /etc/kubernetes/ssl/ca.pem
+    etcd_certfile: /etc/kubernetes/ssl/client.pem
+    etcd_keyfile: /etc/kubernetes/ssl/client-key.pem
+    etcd_endpoints: https://${ETCD_IP}:2379
+
+  locksmith:
+    endpoint: https://${ETCD_IP}:2379
+    etcd_cafile: /etc/kubernetes/ssl/ca.pem
+    etcd_certfile: /etc/kubernetes/ssl/client.pem
+    etcd_keyfile: /etc/kubernetes/ssl/client-key.pem
+
+  update:
+    reboot-strategy: etcd-lock
+
+  units:
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver-key.pem
+        After=flanneld.service
+        After=prefetch-pause.service
+        After=prefetch-rkt-hyperkube.service
+        Requires=prefetch-rkt-hyperkube.service
+        After=prefetch-docker-hyperkube.service
+        Requires=prefetch-docker-hyperkube.service
+        [Service]
+        EnvironmentFile=/etc/environment
+        Environment="KUBELET_ACI=${ HYPERKUBE_IMAGE }"
+        Environment="KUBELET_VERSION=${ HYPERKUBE_VERSION }"
+        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
+          --volume var-log,kind=host,source=/var/log \
+          --mount volume=var-log,target=/var/log \
+          --volume dns,kind=host,source=/etc/resolv.conf \
+          --mount volume=dns,target=/etc/resolv.conf"
+        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
+        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
+        ExecStartPre=/usr/bin/systemctl is-active flanneld.service
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+          --allow-privileged=true \
+          --cloud-provider=aws \
+          --api-servers=http://127.0.0.1:8080 \
+          --cni-conf-dir=/etc/kubernetes/cni/net.d \
+          --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+          --cluster-dns=${DNS_SERVICE_IP} \
+          --cluster-domain=cluster.local \
+          --kubeconfig=/etc/kubernetes/kubeconfig.yml \
+          --node-labels node-role.kubernetes.io/master \
+          --pod-manifest-path=/etc/kubernetes/manifests
+          --register-node=true \
+          --register-with-taints node-role.kubernetes.io/master='':NoSchedule
+        Restart=always
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+    - name: flanneld.service
+      command: start
+      drop-ins:
+        - name: 50-network-config.conf
+          content: |
+            [Unit]
+            Requires=prefetch-flannel.service
+            After=prefetch-flannel.service
+            [Service]
+            EnvironmentFile=/etc/environment
+            Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
+            ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config \
+              '{ "Network": "${ POD_NETWORK }", "Backend": { "Type": "vxlan" } }'
+            Restart=always
+            RestartSec=10
+    - name: locksmithd.service
+      command: start
+      drop-ins:
+        - name: 01-wait-for-certs.conf
+          content: |
+            [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
+            [Service]
+            EnvironmentFile=/etc/environment
+            Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
+            Restart=always
+            RestartSec=10
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 40-flannel.conf
+          content: |
+            [Unit]
+            After=flanneld.service
+            Requires=flanneld.service
+            [Service]
+            Restart=always
+            RestartSec=10
+    - name: prefetch-pause.service
+      command: start
+      content: |
+        [Unit]
+        After=docker.service
+        Requires=docker.service
+        Description=Prefetch pause
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/bash -c "/bin/curl -sL ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | /usr/bin/docker load -q"
+    - name: prefetch-flannel.service
+      command: start
+      content: |
+        [Unit]
+        After=network-online.target
+        Requires=network-online.target
+        Description=Prefetch flannel
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/flannel_${FLANNEL_VERSION}.aci
+    - name: prefetch-rkt-hyperkube.service
+      command: start
+      content: |
+        [Unit]
+        After=network-online.target
+        Requires=network-online.target
+        Description=Prefetch rkt Hyperkube
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/hyperkube_${HYPERKUBE_VERSION}.aci
+    - name: prefetch-docker-hyperkube.service
+      command: start
+      content: |
+        [Unit]
+        After=docker.service
+        Requires=docker.service
+        Description=Prefetch docker Hyperkube
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStartPre=${DOCKER_LOGIN_CMD}
+        ExecStartPre=/usr/bin/docker pull ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION}
+        ExecStart=/usr/bin/docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+
+write_files:
+  - path: "/etc/environment"
+    permissions: 0644
+    content: |
+      COREOS_PRIVATE_IPV4=$private_ipv4
+      ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
+      ETCD_CERT_FILE=/etc/kubernetes/ssl/client.pem
+      ETCD_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
+      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/client.pem
+      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
+  - path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+    permissions: "0755"
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-apiserver
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-apiserver
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+            command:
+            - /hyperkube
+            - apiserver
+            - --bind-address=0.0.0.0
+            - --etcd-servers=https://${ETCD_IP}:2379
+            - --etcd-cafile=/etc/kubernetes/ssl/ca.pem
+            - --etcd-certfile=/etc/kubernetes/ssl/client.pem
+            - --etcd-keyfile=/etc/kubernetes/ssl/client-key.pem
+            - --kubelet-client-certificate=/etc/kubernetes/ssl/client.pem
+            - --kubelet-client-key=/etc/kubernetes/ssl/client-key.pem
+            - --allow-privileged=true
+            - --service-cluster-ip-range=${SERVICE_IP_RANGE}
+            - --secure-port=443
+            - --advertise-address=$private_ipv4
+            - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+            - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
+            - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --client-ca-file=/etc/kubernetes/ssl/ca.pem
+            - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --runtime-config=extensions/v1beta1/networkpolicies=true
+            - --anonymous-auth=false
+            - --storage-backend=etcd2
+            - --storage-media-type=application/json
+            livenessProbe:
+              httpGet:
+                host: 127.0.0.1
+                port: 8080
+                path: /healthz
+              initialDelaySeconds: 15
+              timeoutSeconds: 15
+            ports:
+            - containerPort: 443
+              hostPort: 443
+              name: https
+            - containerPort: 8080
+              hostPort: 8080
+              name: local
+            volumeMounts:
+            - mountPath: /etc/kubernetes/ssl
+              name: ssl-certs-kubernetes
+              readOnly: true
+            - mountPath: /etc/ssl/certs
+              name: ssl-certs-host
+              readOnly: true
+          volumes:
+          - hostPath:
+              path: /etc/kubernetes/ssl
+            name: ssl-certs-kubernetes
+          - hostPath:
+              path: /usr/share/ca-certificates
+            name: ssl-certs-host
+  - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
+    permissions: "0755"
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-proxy
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-proxy
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+            command:
+            - /hyperkube
+            - proxy
+            - --master=http://127.0.0.1:8080
+            - --proxy-mode=iptables
+            securityContext:
+              privileged: true
+            volumeMounts:
+            - mountPath: /etc/ssl/certs
+              name: ssl-certs-host
+              readOnly: true
+          volumes:
+          - hostPath:
+              path: /usr/share/ca-certificates
+            name: ssl-certs-host
+  - path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+    permissions: "0755"
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-controller-manager
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-controller-manager
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+            command:
+            - /hyperkube
+            - controller-manager
+            - --master=http://127.0.0.1:8080
+            - --leader-elect=true
+            - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --root-ca-file=/etc/kubernetes/ssl/ca.pem
+            livenessProbe:
+              httpGet:
+                host: 127.0.0.1
+                path: /healthz
+                port: 10252
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
+            volumeMounts:
+            - mountPath: /etc/kubernetes/ssl
+              name: ssl-certs-kubernetes
+              readOnly: true
+            - mountPath: /etc/ssl/certs
+              name: ssl-certs-host
+              readOnly: true
+          volumes:
+          - hostPath:
+              path: /etc/kubernetes/ssl
+            name: ssl-certs-kubernetes
+          - hostPath:
+              path: /usr/share/ca-certificates
+            name: ssl-certs-host
+  - path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+    permissions: "0755"
+    content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-scheduler
+          namespace: kube-system
+        spec:
+          hostNetwork: true
+          containers:
+          - name: kube-scheduler
+            image: ${HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+            command:
+            - /hyperkube
+            - scheduler
+            - --master=http://127.0.0.1:8080
+            - --leader-elect=true
+            livenessProbe:
+              httpGet:
+                host: 127.0.0.1
+                path: /healthz
+                port: 10251
+              initialDelaySeconds: 15
+              timeoutSeconds: 15
