@@ -4,6 +4,11 @@
 resource "aws_vpc" "kubernetes" {
   cidr_block = "${var.vpc_cidr}"
   enable_dns_hostnames = true
+
+  tags {
+    builtWith = "terraform"
+    Name = "k8s-vpc"
+  }
 }
 
 

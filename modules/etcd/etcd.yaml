@@ -1,4 +1,5 @@
 #cloud-config
+---
 coreos:
   etcd2:
     advertise-client-urls: https://$private_ipv4:2379
@@ -10,3 +11,10 @@ coreos:
   units:
     - name: etcd2.service
       command: start
+      drop-ins:
+        - name: 01-wait-for-certs.conf
+          content: |
+            [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
