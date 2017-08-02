@@ -12,16 +12,16 @@ variable "s3_location" {}
 variable "ecr_location" {}
 
 variable "region" {
-    description = "The region to which you want to deploy"
-    default = "cn-north-1"
+  description = "The region to which you want to deploy"
+  default = "cn-north-1"
 }
 
 variable "amis" {
-    type = "map"
-    default = {
-        # coreOS
-        cn-north-1 = "ami-ca5c8da7"
-    }
+  type = "map"
+  default = {
+  # coreOS
+  cn-north-1 = "ami-ca5c8da7"
+  }
 }
 
 variable "etcd_instance_type" {
@@ -29,11 +29,11 @@ variable "etcd_instance_type" {
 }
 
 variable "master_instance_type" {
-    default = "m3.medium"
+  default = "m3.medium"
 }
 
 variable "worker_instance_type" {
-    default = "m3.medium"
+  default = "m3.medium"
 }
 
 variable "etcd_volumn_size" {
@@ -41,9 +41,9 @@ variable "etcd_volumn_size" {
 }
 
 variable "master_volume_size" {
-    default = 25
+  default = 25
 }
 
 variable "worker_volume_size" {
-    default = 50
+  default = 50
 }
