@@ -9,7 +9,7 @@ Uses Terraform mainly to control.
 ## Set up your credentials
 Put `access_key` and `secret_key` in `~/.aws/credentials`
 
-Or you can put your credentials in `aws_vars.tf` but DO NOT push it.
+Or you can put your credentials in `terraform.tfvars`.
 
 ## Prerequisite
 
