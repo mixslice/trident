@@ -4,10 +4,28 @@ secrets/
 # This one is consequence of the TLS/SSL assets generation
 .srl
 
-# Terraform assets
+# Created by https://www.gitignore.io/api/visualstudiocode
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
+
+# Created by https://www.gitignore.io/api/terraform
+
+### Terraform ###
+# Compiled files
 *.tfstate
 *.tfstate.backup
 
-# terraform bin
-.terraform
-terraform
+# Module directory
+.terraform/
+
+### Terraform Patch ###
+*.tfvars
+# End of https://www.gitignore.io/api/terraform

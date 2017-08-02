@@ -1,3 +1,10 @@
+# Provider
+provider "aws" {
+  access_key = "${var.access_key}"
+  secret_key = "${var.secret_key}"
+  region = "${var.region}"
+}
+
 # Output
 output "k8s_etcd_ip" {
   value = "${module.etcd.public_ips}"
@@ -9,6 +16,7 @@ output "k8s_etcd_ip" {
 #   value = "${module.worker.public_ips}"
 # }
 
+# Variables
 variable "access_key" {}
 variable "secret_key" {}
 
