@@ -28,23 +28,23 @@ resource "aws_instance" "etcd" {
   # Generate the Certificate Authority
   provisioner "local-exec" {
     command = <<EOF
-${path.module}/../../cfssl/generate_ca.sh
-${path.module}/../../cfssl/generate_server.sh k8s_etcd ${self.private_ip}
+${path.root}/cfssl/generate_ca.sh
+${path.root}/cfssl/generate_server.sh k8s_etcd ${self.private_ip}
 EOF
   }
 
   #
   provisioner "file" {
-    source = "${path.module}/../../secrets/ca.pem"
+    source = "${path.root}/secrets/ca.pem"
     destination = "/home/core/ca.pem"
   }
 
   provisioner "file" {
-    source = "${path.module}/../../secrets/k8s_etcd.pem"
+    source = "${path.root}/secrets/k8s_etcd.pem"
     destination = "/home/core/etcd.pem"
   }
   provisioner "file" {
-    source = "${path.module}/../../secrets/k8s_etcd-key.pem"
+    source = "${path.root}/secrets/k8s_etcd-key.pem"
     destination = "/home/core/etcd-key.pem"
   }
   # Move certificates & restart etcd2

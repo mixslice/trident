@@ -102,6 +102,53 @@ coreos:
         ExecStartPre=${DOCKER_LOGIN_CMD}
         ExecStartPre=/usr/bin/docker pull ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION}
         ExecStart=/usr/bin/docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
+        After=flanneld.service
+        Requires=flanneld.service
+        After=prefetch-pause.service
+        Requires=prefetch-pause.service
+        After=prefetch-rkt-hyperkube.service
+        Requires=prefetch-rkt-hyperkube.service
+        After=prefetch-docker-hyperkube.service
+        Requires=prefetch-docker-hyperkube.service
+        [Service]
+        Environment=KUBELET_IMAGE_TAG=${HYPERKUBE_VERSION}
+        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
+          --volume dns,kind=host,source=/etc/resolv.conf \
+          --mount volume=dns,target=/etc/resolv.conf \
+          --volume var-log,kind=host,source=/var/log \
+          --mount volume=var-log,target=/var/log"
+        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
+        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
+        ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+          --allow-privileged=true \
+          --anonymous-auth=false \
+          --api-servers=https://${MASTER_HOST} \
+          --cloud-provider=aws \
+          --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+          --cluster-dns=${DNS_SERVICE_IP} \
+          --cluster-domain=cluster.local \
+          --cni-conf-dir=/etc/kubernetes/cni/net.d \
+          --container-runtime=docker \
+          --hostname-override=$private_ipv4 \
+          --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+          --node-labels node-role.kubernetes.io/node \
+          --pod-manifest-path=/etc/kubernetes/manifests \
+          --register-node=true \
+          --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+          --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem
+        ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
+        Restart=always
+        RestartSec=10
+        [Install]
+        WantedBy=multi-user.target
 
 write_files:
   - path: "/etc/environment"
@@ -115,51 +162,8 @@ write_files:
       ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/client.pem
       ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
       ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
-  - path: "/etc/systemd/system/kubelet.service"
-    permissions: "0755"
-    content: |
-        [Unit]
-        ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker.pem
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
-        After=flanneld.service
-        After=prefetch-pause.service
-        After=prefetch-rkt-hyperkube.service
-        After=prefetch-docker-hyperkube.service
-        Requires=flanneld.service
-        [Service]
-        Environment=KUBELET_IMAGE_TAG=${HYPERKUBE_VERSION}
-        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
-          --volume dns,kind=host,source=/etc/resolv.conf \
-          --mount volume=dns,target=/etc/resolv.conf \
-          --volume var-log,kind=host,source=/var/log \
-          --mount volume=var-log,target=/var/log"
-        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
-        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
-        ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
-        ExecStart=/usr/lib/coreos/kubelet-wrapper \
-          --anonymous-auth=false \
-          --client-ca-file=/etc/kubernetes/ssl/ca.pem \
-          --api-servers=https://${MASTER_HOST} \
-          --network-plugin-dir=/etc/kubernetes/cni/net.d \
-          --container-runtime=docker \
-          --register-node=true \
-          --allow-privileged=true \
-          --pod-manifest-path=/etc/kubernetes/manifests \
-          --hostname-override=$private_ipv4 \
-          --cluster-dns=${DNS_SERVICE_IP} \
-          --cluster-domain=cluster.local \
-          --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-          --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-          --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem
-        ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
-        Restart=always
-        RestartSec=10
-
-        [Install]
-        WantedBy=multi-user.target
   - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Pod
@@ -199,7 +203,7 @@ write_files:
               hostPath:
                 path: "/etc/kubernetes/ssl"
   - path: "/etc/kubernetes/worker-kubeconfig.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Config

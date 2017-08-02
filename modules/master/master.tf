@@ -28,37 +28,37 @@ resource "aws_instance" "master" {
   # Generate k8s_master server certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.module}/../../cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},10.3.0.1,kubernetes.default,kubernetes"
+${path.root}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},10.3.0.1,kubernetes.default,kubernetes"
 EOF
   }
   # Provision k8s_etcd server certificate
   provisioner "file" {
-    source = "${path.module}/../../secrets/ca.pem"
+    source = "${path.root}/secrets/ca.pem"
     destination = "/home/core/ca.pem"
   }
   provisioner "file" {
-    source = "${path.module}/../../secrets/k8s_master.pem"
+    source = "${path.root}/secrets/k8s_master.pem"
     destination = "/home/core/apiserver.pem"
   }
   provisioner "file" {
-    source = "${path.module}/../../secrets/k8s_master-key.pem"
+    source = "${path.root}/secrets/k8s_master-key.pem"
     destination = "/home/core/apiserver-key.pem"
   }
 
   # Generate k8s_master client certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.module}/../../cfssl/generate_client.sh k8s_master
+${path.root}/cfssl/generate_client.sh k8s_master
 EOF
   }
 
   # Provision k8s_master client certificate
   provisioner "file" {
-    source = "${path.module}/../../secrets/client-k8s_master.pem"
+    source = "${path.root}/secrets/client-k8s_master.pem"
     destination = "/home/core/client.pem"
   }
   provisioner "file" {
-    source = "${path.module}/../../secrets/client-k8s_master-key.pem"
+    source = "${path.root}/secrets/client-k8s_master-key.pem"
     destination = "/home/core/client-key.pem"
   }
   # Move certificate into kubernetes/ssl
@@ -81,7 +81,7 @@ data "template_file" "master_yaml" {
     ETCD_IP = "${var.etcd_private_ip}"
     POD_NETWORK = "${var.pod_network}"
     SERVICE_IP_RANGE = "${var.service_ip_range}"
-    DOCKER_LOGIN_CMD = "${file("${path.module}/../../secrets/docker_login")}"
+    DOCKER_LOGIN_CMD = "${file("${path.root}/secrets/docker_login")}"
     S3_LOCATION = "${var.s3_location}"
     FLANNEL_VERSION = "${var.flannel_version}"
     PAUSE_VERSION = "${var.pause_version}"

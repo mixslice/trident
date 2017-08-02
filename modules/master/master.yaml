@@ -109,7 +109,9 @@ coreos:
         ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver.pem
         ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver-key.pem
         After=flanneld.service
+        Requires=flanneld.service
         After=prefetch-pause.service
+        Requires=prefetch-pause.service
         After=prefetch-rkt-hyperkube.service
         Requires=prefetch-rkt-hyperkube.service
         After=prefetch-docker-hyperkube.service
@@ -128,15 +130,17 @@ coreos:
         ExecStartPre=/usr/bin/systemctl is-active flanneld.service
         ExecStart=/usr/lib/coreos/kubelet-wrapper \
           --allow-privileged=true \
-          --cloud-provider=aws \
+          --anonymous-auth=false \
           --api-servers=http://127.0.0.1:8080 \
-          --cni-conf-dir=/etc/kubernetes/cni/net.d \
+          --cloud-provider=aws \
           --client-ca-file=/etc/kubernetes/ssl/ca.pem \
           --cluster-dns=${DNS_SERVICE_IP} \
           --cluster-domain=cluster.local \
-          --kubeconfig=/etc/kubernetes/kubeconfig.yml \
+          --cni-conf-dir=/etc/kubernetes/cni/net.d \
+          --container-runtime=docker \
+          --hostname-override=$private_ipv4 \
           --node-labels node-role.kubernetes.io/master \
-          --pod-manifest-path=/etc/kubernetes/manifests
+          --pod-manifest-path=/etc/kubernetes/manifests \
           --register-node=true \
           --register-with-taints node-role.kubernetes.io/master='':NoSchedule
         Restart=always
@@ -157,7 +161,7 @@ write_files:
       ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
       ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
   - path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Pod
@@ -221,7 +225,7 @@ write_files:
               path: /usr/share/ca-certificates
             name: ssl-certs-host
   - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Pod
@@ -249,7 +253,7 @@ write_files:
               path: /usr/share/ca-certificates
             name: ssl-certs-host
   - path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Pod
@@ -290,7 +294,7 @@ write_files:
               path: /usr/share/ca-certificates
             name: ssl-certs-host
   - path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
-    permissions: "0755"
+    permissions: 0644
     content: |
         apiVersion: v1
         kind: Pod
