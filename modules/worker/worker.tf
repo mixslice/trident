@@ -29,21 +29,21 @@ resource "aws_instance" "worker" {
   # Generate k8s_worker client certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.module}/../cfssl/generate_client.sh k8s_worker
+${path.module}/../../cfssl/generate_client.sh k8s_worker
 EOF
   }
 
   # Provision k8s_master client certificate
   provisioner "file" {
-    source = "../secrets/ca.pem"
+    source = "${path.module}/../../secrets/ca.pem"
     destination = "/home/core/ca.pem"
   }
   provisioner "file" {
-    source = "../secrets/client-k8s_worker.pem"
+    source = "${path.module}/../../secrets/client-k8s_worker.pem"
     destination = "/home/core/worker.pem"
   }
   provisioner "file" {
-    source = "../secrets/client-k8s_worker-key.pem"
+    source = "${path.module}/../../secrets/client-k8s_worker-key.pem"
     destination = "/home/core/worker-key.pem"
   }
 
@@ -72,7 +72,7 @@ data "template_file" "worker_yaml" {
     ETCD_IP = "${var.etcd_private_ip}"
     POD_NETWORK = "${var.pod_network}"
     MASTER_HOST = "${var.master_private_ip}"
-    DOCKER_LOGIN_CMD = "${file("${path.module}/../secrets/docker_login")}"
+    DOCKER_LOGIN_CMD = "${file("${path.module}/../../secrets/docker_login")}"
     S3_LOCATION = "${var.s3_location}"
     FLANNEL_VERSION = "${var.flannel_version}"
     PAUSE_VERSION = "${var.pause_version}"

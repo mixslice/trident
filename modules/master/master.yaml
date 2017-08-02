@@ -17,54 +17,15 @@ coreos:
     reboot-strategy: etcd-lock
 
   units:
-    - name: kubelet.service
-      command: start
-      content: |
-        [Unit]
-        ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver.pem
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver-key.pem
-        After=flanneld.service
-        After=prefetch-pause.service
-        After=prefetch-rkt-hyperkube.service
-        Requires=prefetch-rkt-hyperkube.service
-        After=prefetch-docker-hyperkube.service
-        Requires=prefetch-docker-hyperkube.service
-        [Service]
-        EnvironmentFile=/etc/environment
-        Environment="KUBELET_ACI=${ HYPERKUBE_IMAGE }"
-        Environment="KUBELET_VERSION=${ HYPERKUBE_VERSION }"
-        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
-          --volume var-log,kind=host,source=/var/log \
-          --mount volume=var-log,target=/var/log \
-          --volume dns,kind=host,source=/etc/resolv.conf \
-          --mount volume=dns,target=/etc/resolv.conf"
-        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
-        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
-        ExecStartPre=/usr/bin/systemctl is-active flanneld.service
-        ExecStart=/usr/lib/coreos/kubelet-wrapper \
-          --allow-privileged=true \
-          --cloud-provider=aws \
-          --api-servers=http://127.0.0.1:8080 \
-          --cni-conf-dir=/etc/kubernetes/cni/net.d \
-          --client-ca-file=/etc/kubernetes/ssl/ca.pem \
-          --cluster-dns=${DNS_SERVICE_IP} \
-          --cluster-domain=cluster.local \
-          --kubeconfig=/etc/kubernetes/kubeconfig.yml \
-          --node-labels node-role.kubernetes.io/master \
-          --pod-manifest-path=/etc/kubernetes/manifests
-          --register-node=true \
-          --register-with-taints node-role.kubernetes.io/master='':NoSchedule
-        Restart=always
-        RestartSec=5
-        [Install]
-        WantedBy=multi-user.target
     - name: flanneld.service
       command: start
       drop-ins:
         - name: 50-network-config.conf
           content: |
             [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
             Requires=prefetch-flannel.service
             After=prefetch-flannel.service
             [Service]
@@ -80,13 +41,9 @@ coreos:
         - name: 01-wait-for-certs.conf
           content: |
             [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
-            [Service]
-            EnvironmentFile=/etc/environment
-            Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
-            Restart=always
-            RestartSec=10
     - name: docker.service
       command: start
       drop-ins:
@@ -144,6 +101,48 @@ coreos:
         ExecStartPre=${DOCKER_LOGIN_CMD}
         ExecStartPre=/usr/bin/docker pull ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION}
         ExecStart=/usr/bin/docker tag ${HYPERKUBE_ECR_LOCATION}/hyperkube:${HYPERKUBE_VERSION} ${ HYPERKUBE_IMAGE}:${HYPERKUBE_VERSION}
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver-key.pem
+        After=flanneld.service
+        After=prefetch-pause.service
+        After=prefetch-rkt-hyperkube.service
+        Requires=prefetch-rkt-hyperkube.service
+        After=prefetch-docker-hyperkube.service
+        Requires=prefetch-docker-hyperkube.service
+        [Service]
+        EnvironmentFile=/etc/environment
+        Environment="KUBELET_ACI=${ HYPERKUBE_IMAGE }"
+        Environment="KUBELET_VERSION=${ HYPERKUBE_VERSION }"
+        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
+          --volume var-log,kind=host,source=/var/log \
+          --mount volume=var-log,target=/var/log \
+          --volume dns,kind=host,source=/etc/resolv.conf \
+          --mount volume=dns,target=/etc/resolv.conf"
+        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
+        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
+        ExecStartPre=/usr/bin/systemctl is-active flanneld.service
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+          --allow-privileged=true \
+          --cloud-provider=aws \
+          --api-servers=http://127.0.0.1:8080 \
+          --cni-conf-dir=/etc/kubernetes/cni/net.d \
+          --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+          --cluster-dns=${DNS_SERVICE_IP} \
+          --cluster-domain=cluster.local \
+          --kubeconfig=/etc/kubernetes/kubeconfig.yml \
+          --node-labels node-role.kubernetes.io/master \
+          --pod-manifest-path=/etc/kubernetes/manifests
+          --register-node=true \
+          --register-with-taints node-role.kubernetes.io/master='':NoSchedule
+        Restart=always
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
 
 write_files:
   - path: "/etc/environment"

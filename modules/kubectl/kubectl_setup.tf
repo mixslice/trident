@@ -1,11 +1,11 @@
-# resource "null_resource" "make_admin_key" {
-#   provisioner "local-exec" {
-#     command = <<EOF
-# ${path.module}/../cfssl/generate_admin.sh
-# EOF
-#   }
-# }
-#
+resource "null_resource" "make_admin_key" {
+  provisioner "local-exec" {
+    command = <<EOF
+${path.module}/../../cfssl/generate_admin.sh
+EOF
+  }
+}
+
 # resource "null_resource" "setup_kubectl" {
 #   depends_on = ["null_resource.make_admin_key"]
 #   provisioner "local-exec" {
@@ -24,13 +24,13 @@
 # EOF
 #   }
 # }
-#
-# # resource "null_resource" "deploy_dns_addon" {
-# #   depends_on = ["null_resource.setup_kubectl"]
-# #   provisioner "local-exec" {
-# #     command = <<EOF
-# #       until kubectl get pods 2>/dev/null; do printf '.'; sleep 5; done
-# #       kubectl create -f ${path.module}/k8s/dns-addon.yaml
-# # EOF
-# #   }
-# # }
+
+# resource "null_resource" "deploy_dns_addon" {
+#   depends_on = ["null_resource.setup_kubectl"]
+#   provisioner "local-exec" {
+#     command = <<EOF
+#       until kubectl get pods 2>/dev/null; do printf '.'; sleep 5; done
+#       kubectl create -f ${path.module}/k8s/dns-addon.yaml
+# EOF
+#   }
+# }
