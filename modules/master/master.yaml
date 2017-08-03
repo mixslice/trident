@@ -77,17 +77,6 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/flannel_${FLANNEL_VERSION}.aci
-    - name: prefetch-rkt-hyperkube.service
-      command: start
-      content: |
-        [Unit]
-        After=network-online.target
-        Requires=network-online.target
-        Description=Prefetch rkt Hyperkube
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/usr/bin/rkt fetch --insecure-options=all ${S3_LOCATION}/hyperkube_${HYPERKUBE_VERSION}.aci
     - name: prefetch-docker-hyperkube.service
       command: start
       content: |
@@ -112,15 +101,14 @@ coreos:
         Requires=flanneld.service
         After=prefetch-pause.service
         Requires=prefetch-pause.service
-        After=prefetch-rkt-hyperkube.service
-        Requires=prefetch-rkt-hyperkube.service
         After=prefetch-docker-hyperkube.service
         Requires=prefetch-docker-hyperkube.service
         [Service]
         EnvironmentFile=/etc/environment
-        Environment="KUBELET_ACI=${ HYPERKUBE_IMAGE }"
-        Environment="KUBELET_VERSION=${ HYPERKUBE_VERSION }"
-        Environment="RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid \
+        Environment="KUBELET_IMAGE=${S3_LOCATION}/hyperkube_${HYPERKUBE_VERSION}.aci"
+        Environment="RKT_RUN_ARGS=\
+          --uuid-file-save=/var/run/kubelet-pod.uuid \
+          --insecure-options=image \
           --volume var-log,kind=host,source=/var/log \
           --mount volume=var-log,target=/var/log \
           --volume dns,kind=host,source=/etc/resolv.conf \
