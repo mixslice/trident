@@ -21,10 +21,30 @@ variable "access_key" {}
 variable "secret_key" {}
 
 variable "ssh_key_name" {}
+variable "ssh_user_name" {
+  default = "core"
+}
 variable "ssh_private_key_path" {}
 
-variable "vpc_cidr" {}
-variable "control_cidr" {}
+variable "vpc_cidr" {
+  default = "10.0.0.0/16"
+}
+variable "control_cidr" {
+  default = "0.0.0.0/0"
+}
+
+variable "k8s_service_ip" {
+  default = "10.3.0.1"
+}
+variable "dns_service_ip" {
+  default = "10.3.0.10"
+}
+variable "pod_network" {
+  default = "10.2.0.0/16"
+}
+variable "service_ip_range" {
+  default = "10.3.0.0/24"
+}
 
 variable "s3_location" {}
 variable "ecr_location" {}

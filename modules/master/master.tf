@@ -28,7 +28,7 @@ resource "aws_instance" "master" {
   # Generate k8s_master server certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},10.3.0.1,kubernetes.default,kubernetes"
+${path.root}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},${k8s_service_ip},kubernetes.default,kubernetes"
 EOF
   }
   # Provision k8s_etcd server certificate

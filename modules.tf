@@ -1,7 +1,3 @@
-module "ecr_credentials" {
-  source = "./modules/ecr_credentials"
-}
-
 module "vpc" {
   source = "./modules/vpc"
 
@@ -37,7 +33,7 @@ module "etcd" {
   k8s_iam_profile_name = "${module.iam.etcd_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "core"
+  ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path= "${var.ssh_private_key_path}"
 }
 
@@ -54,13 +50,14 @@ module "master" {
   k8s_iam_profile_name = "${module.iam.master_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "core"
+  ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path= "${var.ssh_private_key_path}"
 
-  dns_service_ip = "10.3.0.10"
+  k8s_service_ip = "${var.k8s_service_ip}"
+  dns_service_ip = "${var.dns_service_ip}"
   etcd_private_ip = "${module.etcd.private_ips[0]}"
-  pod_network = "10.2.0.0/16"
-  service_ip_range = "10.3.0.0/24"
+  pod_network = "${var.pod_network}"
+  service_ip_range = "${var.service_ip_range}"
   s3_location = "${var.s3_location}"
   ecr_location = "${var.ecr_location}"
   flannel_version = "${var.flannel_version}"
@@ -82,24 +79,18 @@ module "worker" {
   k8s_iam_profile_name = "${module.iam.worker_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "core"
+  ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path= "${var.ssh_private_key_path}"
 
-  dns_service_ip = "10.3.0.10"
+  dns_service_ip = "${var.dns_service_ip}"
   etcd_private_ip = "${module.etcd.private_ips[0]}"
   master_private_ip = "${module.master.private_ips[0]}"
-  pod_network = "10.2.0.0/16"
-  service_ip_range = "10.3.0.0/24"
+  pod_network = "${var.pod_network}"
+  service_ip_range = "${var.service_ip_range}"
   s3_location = "${var.s3_location}"
   ecr_location = "${var.ecr_location}"
   flannel_version = "${var.flannel_version}"
   pause_version = "${var.pause_version}"
   kube_image = "${var.kube_image}"
   kube_version = "${var.kube_version}"
-}
-
-module "kubectl_setup" {
-  source = "./modules/kubectl"
-
-  master_public_ip = "${module.master.public_ips[0]}"
 }
