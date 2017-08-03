@@ -6,6 +6,7 @@ variable "master_volume_size" {}
 variable "k8s_master_sg_id" {}
 variable "k8s_subnet_id" {}
 variable "k8s_iam_profile_name" {}
+variable "k8s_service_ip" {}
 
 variable "dns_service_ip" {}
 variable "etcd_private_ip" {}
