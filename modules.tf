@@ -94,3 +94,9 @@ module "worker" {
   kube_image = "${var.kube_image}"
   kube_version = "${var.kube_version}"
 }
+
+module "kubectl_setup" {
+  source = "./modules/kubectl"
+
+  master_public_ip = "${module.master.public_ips[0]}"
+}
