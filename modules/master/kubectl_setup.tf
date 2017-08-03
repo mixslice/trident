@@ -1,4 +1,5 @@
 resource "null_resource" "setup_kubectl" {
+  depends_on = ["aws_instance.master"]
   provisioner "local-exec" {
     command = <<EOF
       ${path.root}/cfssl/generate_admin.sh
