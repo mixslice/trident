@@ -56,17 +56,6 @@ coreos:
             [Service]
             Restart=always
             RestartSec=10
-    - name: prefetch-pause.service
-      command: start
-      content: |
-        [Unit]
-        After=docker.service
-        Requires=docker.service
-        Description=Prefetch pause
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/bin/bash -c "/bin/curl -sL ${S3_LOCATION}/pause-amd64_${PAUSE_VERSION}.tar | /usr/bin/docker load -q"
     - name: prefetch-flannel.service
       command: start
       content: |
@@ -100,8 +89,6 @@ coreos:
         ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
         After=flanneld.service
         Requires=flanneld.service
-        After=prefetch-pause.service
-        Requires=prefetch-pause.service
         After=prefetch-docker-hyperkube.service
         Requires=prefetch-docker-hyperkube.service
         [Service]
@@ -123,12 +110,13 @@ coreos:
           --cloud-provider=aws \
           --client-ca-file=/etc/kubernetes/ssl/ca.pem \
           --cluster-dns=${DNS_SERVICE_IP} \
-          --cluster-domain=cluster.local \
+          --cluster-domain=${CLUSTER_DOMAIN} \
           --cni-conf-dir=/etc/kubernetes/cni/net.d \
           --container-runtime=docker \
           --hostname-override=$private_ipv4 \
           --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
           --node-labels node-role.kubernetes.io/node \
+          --pod-infra-container-image=${POD_INFRA_CONTAINER_IMAGE} \
           --pod-manifest-path=/etc/kubernetes/manifests \
           --register-node=true \
           --tls-cert-file=/etc/kubernetes/ssl/worker.pem \

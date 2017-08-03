@@ -11,6 +11,7 @@ variable "ssh_key_name" {}
 variable "ssh_user_name" {}
 variable "ssh_private_key_path" {}
 
+variable "cluster_domain" {}
 variable "dns_service_ip" {}
 variable "etcd_private_ip" {}
 variable "master_private_ip" {}
@@ -19,7 +20,7 @@ variable "service_ip_range" {}
 variable "s3_location" {}
 variable "ecr_location" {}
 variable "flannel_version" {}
-variable "pause_version" {}
+variable "pod_infra_container_image" {}
 variable "kube_image" {}
 variable "kube_version" {}
 

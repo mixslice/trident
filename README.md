@@ -19,7 +19,7 @@ Download [Terraform](https://www.terraform.io/)
 
 ## Deploy
 ```
-make apply
+make build
 ```
 
 ## Roadmap

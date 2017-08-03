@@ -8,6 +8,7 @@ variable "k8s_subnet_id" {}
 variable "k8s_iam_profile_name" {}
 variable "k8s_service_ip" {}
 
+variable "cluster_domain" {}
 variable "dns_service_ip" {}
 variable "etcd_private_ip" {}
 variable "pod_network" {}
@@ -15,7 +16,7 @@ variable "service_ip_range" {}
 variable "s3_location" {}
 variable "ecr_location" {}
 variable "flannel_version" {}
-variable "pause_version" {}
+variable "pod_infra_container_image" {}
 variable "kube_image" {}
 variable "kube_version" {}
 

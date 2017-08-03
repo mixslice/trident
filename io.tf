@@ -46,6 +46,10 @@ variable "service_ip_range" {
   default = "10.3.0.0/24"
 }
 
+variable "cluster_domain" {
+  default = "cluster.local"
+}
+
 variable "s3_location" {}
 variable "ecr_location" {}
 
@@ -94,8 +98,8 @@ variable "kube_version" {
   default = "v1.7.1_coreos.0"
 }
 
-variable "pause_version" {
-  default = "3.0"
+variable "pod_infra_container_image" {
+  default = "registry.aliyuncs.com/archon/pause-amd64:3.0"
 }
 
 variable "flannel_version" {

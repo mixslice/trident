@@ -77,6 +77,7 @@ EOF
 data "template_file" "master_yaml" {
   template = "${file("${path.module}/master.yaml")}"
   vars {
+    CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"
     ETCD_IP = "${var.etcd_private_ip}"
     POD_NETWORK = "${var.pod_network}"
@@ -84,7 +85,7 @@ data "template_file" "master_yaml" {
     DOCKER_LOGIN_CMD = "${file("${path.root}/secrets/docker_login")}"
     S3_LOCATION = "${var.s3_location}"
     FLANNEL_VERSION = "${var.flannel_version}"
-    PAUSE_VERSION = "${var.pause_version}"
+    POD_INFRA_CONTAINER_IMAGE = "${var.pod_infra_container_image}"
     HYPERKUBE_ECR_LOCATION= "${var.ecr_location}"
     HYPERKUBE_IMAGE = "${var.kube_image}"
     HYPERKUBE_VERSION = "${var.kube_version}"

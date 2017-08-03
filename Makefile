@@ -6,6 +6,8 @@ MASTER_HOST=$(shell terraform output | grep -A1 master_ip | awk 'NR>1 {print $1}
 plan: docker_token_gen tf_get
 	terraform plan
 
+build: apply kubecfg
+
 apply: docker_token_gen tf_get
 	terraform apply
 

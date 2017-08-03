@@ -53,6 +53,7 @@ module "master" {
   ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path= "${var.ssh_private_key_path}"
 
+  cluster_domain = "${var.cluster_domain}"
   k8s_service_ip = "${var.k8s_service_ip}"
   dns_service_ip = "${var.dns_service_ip}"
   etcd_private_ip = "${module.etcd.private_ips[0]}"
@@ -61,7 +62,7 @@ module "master" {
   s3_location = "${var.s3_location}"
   ecr_location = "${var.ecr_location}"
   flannel_version = "${var.flannel_version}"
-  pause_version = "${var.pause_version}"
+  pod_infra_container_image = "${var.pod_infra_container_image}"
   kube_image = "${var.kube_image}"
   kube_version = "${var.kube_version}"
 }
@@ -82,6 +83,7 @@ module "worker" {
   ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path= "${var.ssh_private_key_path}"
 
+  cluster_domain = "${var.cluster_domain}"
   dns_service_ip = "${var.dns_service_ip}"
   etcd_private_ip = "${module.etcd.private_ips[0]}"
   master_private_ip = "${module.master.private_ips[0]}"
@@ -90,13 +92,13 @@ module "worker" {
   s3_location = "${var.s3_location}"
   ecr_location = "${var.ecr_location}"
   flannel_version = "${var.flannel_version}"
-  pause_version = "${var.pause_version}"
+  pod_infra_container_image = "${var.pod_infra_container_image}"
   kube_image = "${var.kube_image}"
   kube_version = "${var.kube_version}"
 }
 
-module "kubectl_setup" {
-  source = "./modules/kubectl"
+# module "kubectl_setup" {
+#   source = "./modules/kubectl"
 
-  master_public_ip = "${module.master.public_ips[0]}"
-}
+#   master_public_ip = "${module.master.public_ips[0]}"
+# }
