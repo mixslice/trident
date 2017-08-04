@@ -55,4 +55,4 @@ upload_secrets:
 	aws s3 cp --recursive ./secrets/ s3://k8s-secrets/
 
 download_secrets:
-	aws s3 cp --recursive s3://k8s-secrets/
+	aws s3 cp --recursive s3://k8s-secrets/ ./secrets/
