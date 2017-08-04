@@ -48,6 +48,9 @@ kube_ecr_token_refresh_addon:
 node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
+kubect_dockertoken:
+	./local_setup_secrets.sh
+
 upload_secrets:
 	aws s3 cp --recursive ./secrets/ s3://k8s-secrets/
 
