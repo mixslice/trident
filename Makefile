@@ -3,10 +3,10 @@ ADMIN_KEY=./secrets/admin-key.pem
 ADMIN_CERT=./secrets/admin.pem
 MASTER_HOST=$(shell terraform output | grep -A1 master_ip | awk 'NR>1 {print $1}' | xargs echo)
 
+.PHONY: apply kubecfg
+
 plan: docker_token_gen tf_get
 	terraform plan
-
-build: apply kubecfg
 
 apply: docker_token_gen tf_get
 	terraform apply
@@ -24,7 +24,7 @@ tf_clean:
 	terraform destroy
 
 key_clean:
-	ls secrets | grep -v README | xargs rm -rf
+	ls secrets | grep -v README  | sed "s/^/secrets\//" | xargs rm -rf
 
 clean: tf_clean key_clean
 
