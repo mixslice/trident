@@ -58,8 +58,6 @@ spec:
       labels:
         k8s-app: kubernetes-dashboard
     spec:
-      imagePullSecrets:
-      - name: awsecr-cred
       containers:
       - name: kubernetes-dashboard
         image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/kubernetes-dashboard-amd64:v1.6.3
@@ -78,6 +76,8 @@ spec:
             port: 9090
           initialDelaySeconds: 30
           timeoutSeconds: 30
+      imagePullSecrets:
+      - name: cn-north-1-ecr-registry-key
       serviceAccountName: kubernetes-dashboard
       # Comment the following tolerations if Dashboard must not be deployed on master
       tolerations:

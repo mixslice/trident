@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ecr-dockercfg-refresh
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: ecr-dockercfg-refresh
+  template:
+    metadata:
+      labels:
+        run: ecr-dockercfg-refresh
+    spec:
+      containers:
+      - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-33b53bf
+        name: ecr-dockercfg-refresh
+      restartPolicy: Always

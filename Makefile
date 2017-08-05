@@ -11,6 +11,8 @@ plan: docker_token_gen tf_get
 apply: docker_token_gen tf_get
 	terraform apply
 
+build: apply kubecfg
+
 tf_get:
 	terraform get
 
@@ -32,6 +34,7 @@ output:
 	terraform output
 
 kubecfg:
+	./cfssl/generate_admin.sh
 	kubectl config set-cluster default-cluster \
 	--server=https://$(MASTER_HOST) --certificate-authority=$(CA_CERT)
 	kubectl config set-credentials default-admin \
@@ -39,5 +42,17 @@ kubecfg:
 	kubectl config set-context default-system --cluster=default-cluster --user=default-admin
 	kubectl config use-context default-system
 
+kube_ecr_token_refresh_addon:
+	kubectl create -f addons/ecr-dockercfg-refresh
+
 node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
+
+kubect_dockertoken:
+	./local_setup_secrets.sh
+
+upload_secrets:
+	aws s3 cp --recursive ./secrets/ s3://k8s-secrets/
+
+download_secrets:
+	aws s3 cp --recursive s3://k8s-secrets/ ./secrets/
