@@ -27,7 +27,7 @@ make
 - **TODO** Using AWS EC2 Container Registry
 - **TODO** Ingress Controller for ALB
 - **TODO** Security Group with minimal policies
-- **TODO** Essential addons mirror
+- ✅ Essential addons
 - **TODO** Monitoring with Prometheus
 - **TODO** Logging with Fluentd and cloudwatch
 - **TODO** Kubernetes upgrade mechanism
