@@ -2,6 +2,17 @@ CA_CERT=./secrets/ca.pem
 ADMIN_KEY=./secrets/admin-key.pem
 ADMIN_CERT=./secrets/admin.pem
 MASTER_HOST=$(shell terraform output | grep -A1 master_ip | awk 'NR>1 {print $1}' | xargs echo)
+upload_targets=ca.pem \
+	ca-key.pem \
+	client-k8s_worker.pem \
+	client-k8s_worker-key.pem \
+	client-k8s_master.pem \
+	client-k8s_master-key.pem \
+	k8s_etcd.pem \
+	k8s_etcd-key.pem \
+	k8s_master.pem \
+	k8s_master-key.pem
+# upload_targets = $(addprefix ./secrets/, $(UPLOAD_SECRET_NAMES))
 
 .PHONY: apply kubecfg
 
@@ -11,10 +22,18 @@ plan: docker_token_gen tf_get
 apply: docker_token_gen tf_get
 	terraform apply
 
-build: apply kubecfg
+build: apply kubecfg kubectl_dockertoken create_essential_addons sync_upload
+
+clean: tf_clean key_clean
+
+output:
+	terraform output
 
 tf_get:
 	terraform get
+
+tf_clean: tf_get
+	terraform destroy
 
 docker_token_remove:
 	rm -rf ./secrets/docker_login
@@ -22,16 +41,8 @@ docker_token_remove:
 docker_token_gen: docker_token_remove
 	aws ecr get-login --no-include-email --region cn-north-1 | sed "s/^/\/usr\/bin\//" > ./secrets/docker_login
 
-tf_clean:
-	terraform destroy
-
 key_clean:
 	ls secrets | grep -v README  | sed "s/^/secrets\//" | xargs rm -rf
-
-clean: tf_clean key_clean
-
-output:
-	terraform output
 
 kubecfg:
 	./cfssl/generate_admin.sh
@@ -42,17 +53,28 @@ kubecfg:
 	kubectl config set-context default-system --cluster=default-cluster --user=default-admin
 	kubectl config use-context default-system
 
-kube_ecr_token_refresh_addon:
-	kubectl create -f addons/ecr-dockercfg-refresh
+remote_kubecfg: sync_download kubecfg
 
 node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
-kubect_dockertoken:
-	./local_setup_secrets.sh
+kubectl_dockertoken:
+	./local_setup_secret.sh kube-system
 
-upload_secrets:
-	aws s3 cp --recursive ./secrets/ s3://k8s-secrets/
+delete_essential_addons:
+	kubectl delete -f addons/dashboard/.
+	kubectl delete -f addons/heapster/.
+	kubectl delete -f addons/dns/.
 
-download_secrets:
-	aws s3 cp --recursive s3://k8s-secrets/ ./secrets/
+create_essential_addons:
+	kubectl create -f addons/dns/.
+	kubectl create -f addons/heapster/.
+	kubectl create -f addons/dashboard/.
+
+sync_upload:
+	aws s3 sync --exclude="admin*" --exclude="README.md" --exclude="docker*" ./secrets/ s3://k8s-secrets
+	aws s3 cp terraform.tfstate s3://k8s-secrets
+
+sync_download:
+	aws s3 sync s3://k8s-secrets ./secrets/
+	mv ./secrets/terraform.tfstate terraform.tfstate

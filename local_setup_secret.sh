@@ -1,9 +1,13 @@
 #!/bin/bash
+
+until kubectl get pods 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
+
 if [ "x$1" == "x" ];then
-  NAMESPACE=$1
-else
   NAMESPACE="default"
+else
+  NAMESPACE=$1
 fi
+
 AWS_ACCOUNT="493490470276"
 AWS_REGION="cn-north-1"
 if [ "x$SECRET_NAME" == "x" ]; then SECRET_NAME=${AWS_REGION}-ecr-registry-key; fi
