@@ -23,12 +23,18 @@ make
 ```
 
 ## Roadmap
-
-- **TODO** Using AWS EC2 Container Registry
-- **TODO** Ingress Controller for ALB
-- **TODO** Security Group with minimal policies
-- ✅ Essential addons
-- **TODO** Monitoring with Prometheus
-- **TODO** Logging with Fluentd and cloudwatch
-- **TODO** Kubernetes upgrade mechanism
-- **TODO** rkt as container runtime
+- [x] VPC and internet gateway
+- [x] IAM role
+- [x] Security groups (master, worker and etc)
+- [x] kubernetes machines setup (with coreOS_v1407) (master, worker, and etcd)
+- [x] certificates generate
+- [x] kubernetes setup: remote (hyperkube and etc)
+- [x] kubernetes setup: local (kubectl)
+- [x] Essential addons: dns, dashboard, heapster
+- [x] Using AWS EC2 Container Registry
+- [ ] Ingress Controller for ALB
+- [ ] Security Group with minimal policies
+- [ ] Monitoring with Prometheus
+- [ ] Logging with Fluentd and cloudwatch
+- [ ] Kubernetes upgrade mechanism
+- [ ] rkt as container runtime
