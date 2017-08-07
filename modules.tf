@@ -1,23 +1,49 @@
+# #####################
+# All modules ( main terraform entry point )
+# #####################
 module "vpc" {
   source = "./modules/vpc"
-
+  # Input
   vpc_cidr = "${var.vpc_cidr}"
+  # Outpu
+  # vpc_id : aws_vpc.kubernetes.id
+  # subnet_id : aws_subnet.kubernetes.id
 }
 
 module "sg" {
   source = "./modules/securitygroups"
-
+  # Input
   vpc_id = "${module.vpc.vpc_id}"
   vpc_cidr = "${var.vpc_cidr}"
   control_cidr = "${var.control_cidr}"
+  # Output
+  # etcd_id   : aws_security_group.k8s-etcd.id
+  # master_id : aws_security_group.k8s-master.id
+  # worker_id : aws_security_group.k8s-worker.id
 }
 
 module "iam" {
   source = "./modules/iam"
+  # Input
+
+  # Output
+  # etcd_profile_id : aws_iam_role.etcd_role.id
+  # etcd_profile_name : aws_iam_instance_profile.etcd_profile.name
+  # wroker_profile_id : aws_iam_role.worker_role.id
+  # worker_profile_name : aws_iam_instance_profile.worker_profile.name
+  # master_profile_id : aws_iam_role.master_role.id
+  # master_profile_name : aws_iam_instance_profile.master_profile.name
 }
 
 # module "elb" {
 #   source = "./modules/elb"
+# }
+
+# module "alb" {
+#   source = "./modules/alb"
+#
+#   subnet_ids = "1"
+#   security_group_ids = "2"
 # }
 
 module "etcd" {
