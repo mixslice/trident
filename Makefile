@@ -11,10 +11,18 @@ plan: docker_token_gen tf_get
 apply: docker_token_gen tf_get
 	terraform apply
 
-build: apply kubecfg
+build: apply kubecfg kubectl_dockertoken create_essential_addons upload_secrets
+
+clean: tf_clean key_clean
+
+output:
+	terraform output
 
 tf_get:
 	terraform get
+
+tf_clean: tf_get
+	terraform destroy
 
 docker_token_remove:
 	rm -rf ./secrets/docker_login
@@ -22,16 +30,8 @@ docker_token_remove:
 docker_token_gen: docker_token_remove
 	aws ecr get-login --no-include-email --region cn-north-1 | sed "s/^/\/usr\/bin\//" > ./secrets/docker_login
 
-tf_clean:
-	terraform destroy
-
 key_clean:
 	ls secrets | grep -v README  | sed "s/^/secrets\//" | xargs rm -rf
-
-clean: tf_clean key_clean
-
-output:
-	terraform output
 
 kubecfg:
 	./cfssl/generate_admin.sh
@@ -42,17 +42,28 @@ kubecfg:
 	kubectl config set-context default-system --cluster=default-cluster --user=default-admin
 	kubectl config use-context default-system
 
-kube_ecr_token_refresh_addon:
-	kubectl create -f addons/ecr-dockercfg-refresh
+remote_kubecfg: download_s3 kubecfg
 
 node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
-kubect_dockertoken:
-	./local_setup_secrets.sh
+kubectl_dockertoken:
+	./local_setup_secret.sh kube-system
 
-upload_secrets:
+delete_essential_addons:
+	kubectl delete -f addons/dashboard/.
+	kubectl delete -f addons/heapster/.
+	kubectl delete -f addons/dns/.
+
+create_essential_addons:
+	kubectl create -f addons/dns/.
+	kubectl create -f addons/heapster/.
+	kubectl create -f addons/dashboard/.
+
+upload_s3:
 	aws s3 cp --recursive ./secrets/ s3://k8s-secrets/
+	aws s3 cp terraform.tfstate s3://k8s-secrets
 
-download_secrets:
+download_s3:
+	aws s3 cp s3://k8s-secrets terraform.tfstate
 	aws s3 cp --recursive s3://k8s-secrets/ ./secrets/
