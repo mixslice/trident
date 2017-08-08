@@ -2,7 +2,7 @@
 
 until kubectl get pods 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
 
-if [ "x$1" == "x" ];then
+if [ "x$NAMESPACE" == "x" ];then
   NAMESPACE="default"
 else
   NAMESPACE=$1

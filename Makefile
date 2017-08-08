@@ -16,13 +16,13 @@ upload_targets=ca.pem \
 
 .PHONY: apply kubecfg
 
-plan: docker_token_gen tf_get
+plan: tf_get
 	terraform plan
 
-apply: docker_token_gen tf_get
+apply: tf_get
 	terraform apply
 
-build: apply kubecfg kubectl_dockertoken create_essential_addons sync_upload
+build: apply kubecfg sync_upload kubectl_dockertoken create_essential_addons
 
 clean: tf_clean key_clean
 
@@ -34,12 +34,6 @@ tf_get:
 
 tf_clean: tf_get
 	terraform destroy
-
-docker_token_remove:
-	rm -rf ./secrets/docker_login
-
-docker_token_gen: docker_token_remove
-	aws ecr get-login --no-include-email --region cn-north-1 | sed "s/^/\/usr\/bin\//" > ./secrets/docker_login
 
 key_clean:
 	ls secrets | grep -v README  | sed "s/^/secrets\//" | xargs rm -rf
@@ -59,7 +53,7 @@ node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
 kubectl_dockertoken:
-	./local_setup_secret.sh kube-system
+	NAMESPACE=kube-system ./local_setup_secret.sh
 
 delete_essential_addons:
 	kubectl delete -f addons/dashboard/.
@@ -67,14 +61,14 @@ delete_essential_addons:
 	kubectl delete -f addons/dns/.
 
 create_essential_addons:
-	kubectl create -f addons/dns/.
-	kubectl create -f addons/heapster/.
-	kubectl create -f addons/dashboard/.
+	kubectl apply -f addons/dns/.
+	kubectl apply -f addons/heapster/.
+	kubectl apply -f addons/dashboard/.
 
 sync_upload:
-	aws s3 sync --exclude="admin*" --exclude="README.md" --exclude="docker*" ./secrets/ s3://k8s-secrets
+	aws s3 sync --exclude="admin*" --exclude="README.md" ./secrets/ s3://k8s-secrets
 	aws s3 cp terraform.tfstate s3://k8s-secrets
 
 sync_download:
 	aws s3 sync s3://k8s-secrets ./secrets/
-	mv ./secrets/terraform.tfstate terraform.tfstate
+	cp ./secrets/terraform.tfstate terraform.tfstate

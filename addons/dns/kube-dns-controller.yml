@@ -39,8 +39,6 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
-      imagePullSecrets:
-      - name: cn-north-1-ecr-registry-key
       tolerations:
       - key: node-role.kubernetes.io/master
         operator: Exists

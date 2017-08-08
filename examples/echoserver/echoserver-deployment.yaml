@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: echoserver
+  namespace: default
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      imagePullSecrets:
+      - name: cn-north-1-ecr-registry-key
+      containers:
+      - image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/echoserver:1.4
+        imagePullPolicy: Always
+        name: echoserver
+        ports:
+        - containerPort: 8080
