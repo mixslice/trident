@@ -22,7 +22,7 @@ plan: docker_token_gen tf_get
 apply: docker_token_gen tf_get
 	terraform apply
 
-build: apply kubecfg kubectl_dockertoken create_essential_addons sync_upload
+build: apply kubecfg sync_upload kubectl_dockertoken create_essential_addons
 
 clean: tf_clean key_clean
 
@@ -67,9 +67,9 @@ delete_essential_addons:
 	kubectl delete -f addons/dns/.
 
 create_essential_addons:
-	kubectl create -f addons/dns/.
-	kubectl create -f addons/heapster/.
-	kubectl create -f addons/dashboard/.
+	kubectl apply -f addons/dns/.
+	kubectl apply -f addons/heapster/.
+	kubectl apply -f addons/dashboard/.
 
 sync_upload:
 	aws s3 sync --exclude="admin*" --exclude="README.md" --exclude="docker*" ./secrets/ s3://k8s-secrets
