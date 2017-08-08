@@ -28,6 +28,8 @@ spec:
         app: alb-ingress-controller
     spec:
       serviceAccount: alb-ingress-controller
+      imagePullSecrets:
+      - name: cn-north-1-ecr-registry-key
       containers:
       - args:
         - /server
@@ -54,7 +56,7 @@ spec:
           # by the ALB Ingress Controller, providing distinction between
           # clusters.
         - name: CLUSTER_NAME
-          value: cskin-k8s-cluster
+          value: cskin
           # Enables logging on all outbound requests sent to the AWS API.
           # If logging is desired, set to true.
         - name: AWS_DEBUG
@@ -72,7 +74,7 @@ spec:
               apiVersion: v1
               fieldPath: metadata.namespace
         # Repository location of the ALB Ingress Controller.
-        image: quay.io/coreos/alb-ingress-controller:affcaf7c
+        image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/alb-ingress-controller:0.8
         imagePullPolicy: Always
         name: server
         resources: {}
@@ -89,41 +91,6 @@ metadata:
   namespace: kube-system
   labels:
     app: alb-ingress-controller
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: alb-ingress-controller
-  labels:
-    app: alb-ingress-controller
-rules:
-- apiGroups:
-  - ""
-  - "extensions"
-  resources:
-  - endpoints
-  - ingresses
-  - ingresses/status
-  - events
-  verbs:
-  - create
-  - get
-  - watch
-  - list
-  - update
-- apiGroups:
-  - ""
-  - "extensions"
-  resources:
-  - nodes
-  - services
-  - secrets
-  - configmaps
-  - pods
-  verbs:
-  - get
-  - watch
-  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding

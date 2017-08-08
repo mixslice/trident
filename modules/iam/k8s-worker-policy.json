@@ -7,6 +7,11 @@
       "Resource": "*"
     },
     {
+        "Action" : ["elasticloadbalancing:*"],
+        "Effect": "Allow",
+        "Resource": ["*"]
+    },
+    {
       "Effect": "Allow",
       "Action": "ec2:AttachVolume",
       "Resource": "*"
