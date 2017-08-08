@@ -27,9 +27,7 @@ spec:
       labels:
         app: alb-ingress-controller
     spec:
-      serviceAccount: alb-ingress-controller
-      imagePullSecrets:
-      - name: cn-north-1-ecr-registry-key
+      serviceAccountName: alb-ingress-controller
       containers:
       - args:
         - /server
@@ -91,6 +89,8 @@ metadata:
   namespace: kube-system
   labels:
     app: alb-ingress-controller
+imagePullSecrets:
+- name: cn-north-1-ecr-registry-key
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -101,7 +101,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: alb-ingress-controller
+  name: cluster-admin
 subjects:
 - kind: ServiceAccount
   name: alb-ingress-controller

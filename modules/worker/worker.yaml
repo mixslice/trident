@@ -141,7 +141,7 @@ coreos:
         ExecStart=/opt/bin/docker-login
 
 write_files:
-  - path: "/opt/bin/docker_ecr_login"
+  - path: "/opt/bin/docker-login-gen"
     permissions: 0755
     owner: root:root
     content: |
