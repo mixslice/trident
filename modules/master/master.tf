@@ -82,7 +82,6 @@ data "template_file" "master_yaml" {
     ETCD_IP = "${var.etcd_private_ip}"
     POD_NETWORK = "${var.pod_network}"
     SERVICE_IP_RANGE = "${var.service_ip_range}"
-    DOCKER_LOGIN_CMD = "${file("${path.root}/secrets/docker_login")}"
     S3_LOCATION = "${var.s3_location}"
     FLANNEL_VERSION = "${var.flannel_version}"
     POD_INFRA_CONTAINER_IMAGE = "${var.pod_infra_container_image}"
