@@ -1,11 +1,11 @@
 {
-    "CN": "kube-master",
+    "CN": "system:kube-proxy",
     "hosts": [""],
     "key": {
         "algo": "rsa",
         "size": 2048
     },
     "names": [{
-        "O": "system:masters"
+        "O": "system:node-proxier"
     }]
 }

@@ -30,6 +30,7 @@ resource "aws_instance" "worker" {
   provisioner "local-exec" {
     command = <<EOF
 ${path.root}/cfssl/generate_client.sh worker
+${path.root}/cfssl/generate_client.sh proxy
 EOF
   }
 
@@ -46,12 +47,21 @@ EOF
     source = "${path.root}/secrets/client-worker-key.pem"
     destination = "/home/core/worker-key.pem"
   }
+  provisioner "file" {
+    source = "${path.root}/secrets/client-proxy.pem"
+    destination = "/home/core/proxy.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/client-proxy-key.pem"
+    destination = "/home/core/proxy-key.pem"
+  }
 
   # TODO: permissions on these keys
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p /etc/kubernetes/ssl",
       "sudo cp /home/core/{ca,worker,worker-key}.pem /etc/kubernetes/ssl/.",
+      "sudo mv /home/core/{proxy,proxy-key}.pem /etc/kubernetes/ssl/.",
       "sudo mkdir -p /etc/ssl/etcd/",
       "sudo mv /home/core/{ca,worker,worker-key}.pem /etc/ssl/etcd/."
     ]
