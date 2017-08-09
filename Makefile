@@ -22,7 +22,11 @@ plan: tf_get
 apply: tf_get
 	terraform apply
 
-build: apply kubecfg sync_upload kubectl_dockertoken create_essential_addons
+build: apply kubecfg sync_upload kubectl_dockertoken create_essential_addons build_complete
+
+
+build_complete:
+	osascript -e 'display notification "Your build has finished!" with title "Jobs Done"'
 
 clean: tf_clean key_clean
 
@@ -47,7 +51,7 @@ kubecfg:
 	kubectl config set-context default-system --cluster=default-cluster --user=default-admin
 	kubectl config use-context default-system
 
-remote_kubecfg: sync_download kubecfg
+remote_kubecfg: key_clean sync_download kubecfg
 
 node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
