@@ -27,6 +27,6 @@ variable "kube_version" {}
 output "public_ips" {
   value = "${aws_instance.worker.*.public_ip}"
 }
-output "private_ip" {
+output "private_ips" {
   value = "${aws_instance.worker.*.private_ip}"
 }

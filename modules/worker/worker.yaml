@@ -184,14 +184,14 @@ write_files:
             - /hyperkube
             - proxy
             - --master=https://${MASTER_HOST}
-            - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
+            - --kubeconfig=/etc/kubernetes/proxy-kubeconfig.yaml
             - --proxy-mode=iptables
             securityContext:
               privileged: true
             volumeMounts:
               - mountPath: /etc/ssl/certs
                 name: "ssl-certs"
-              - mountPath: /etc/kubernetes/worker-kubeconfig.yaml
+              - mountPath: /etc/kubernetes/proxy-kubeconfig.yaml
                 name: "kubeconfig"
                 readOnly: true
               - mountPath: /etc/kubernetes/ssl
@@ -203,7 +203,7 @@ write_files:
                 path: "/usr/share/ca-certificates"
             - name: "kubeconfig"
               hostPath:
-                path: "/etc/kubernetes/worker-kubeconfig.yaml"
+                path: "/etc/kubernetes/proxy-kubeconfig.yaml"
             - name: "etc-kube-ssl"
               hostPath:
                 path: "/etc/kubernetes/ssl"
@@ -221,6 +221,26 @@ write_files:
           user:
             client-certificate: /etc/kubernetes/ssl/worker.pem
             client-key: /etc/kubernetes/ssl/worker-key.pem
+        contexts:
+        - context:
+            cluster: local
+            user: kubelet
+          name: kubelet-context
+        current-context: kubelet-context
+  - path: "/etc/kubernetes/proxy-kubeconfig.yaml"
+    permissions: 0644
+    content: |
+        apiVersion: v1
+        kind: Config
+        clusters:
+        - name: local
+          cluster:
+            certificate-authority: /etc/kubernetes/ssl/ca.pem
+        users:
+        - name: kubelet
+          user:
+            client-certificate: /etc/kubernetes/ssl/proxy.pem
+            client-key: /etc/kubernetes/ssl/proxy-key.pem
         contexts:
         - context:
             cluster: local

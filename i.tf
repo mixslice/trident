@@ -85,7 +85,7 @@ variable "kube_image" {
 }
 
 variable "kube_version" {
-  default = "v1.7.2_coreos.0"
+  default = "v1.7.3_coreos.0"
 }
 
 variable "pod_infra_container_image" {
