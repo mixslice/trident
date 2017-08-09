@@ -6,4 +6,4 @@ CFSSL_DIR=$(dirname "${BASH_SOURCE[0]}")
 cfssl gencert -ca=$SECRETS_DIR/ca.pem \
     -ca-key=$SECRETS_DIR/ca-key.pem \
     -config=$CFSSL_DIR/ca-config.json \
-    -profile=client $CFSSL_DIR/client.json | cfssljson -bare $SECRETS_DIR/client-$1
+    -profile=client $CFSSL_DIR/client-$1.json | cfssljson -bare $SECRETS_DIR/client-$1

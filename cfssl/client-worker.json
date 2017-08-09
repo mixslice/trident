@@ -6,10 +6,6 @@
         "size": 2048
     },
     "names": [{
-        "C": "CN",
-        "L": "SH",
-        "O": "system:node-proxier",
-        "OU": "Cluster",
-        "ST": "Shanghai"
+        "O": "system:node-proxier"
     }]
 }
