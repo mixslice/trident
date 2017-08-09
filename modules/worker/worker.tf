@@ -26,10 +26,10 @@ resource "aws_instance" "worker" {
     private_key = "${file(var.ssh_private_key_path)}"
   }
 
-  # Generate k8s_worker client certificate
+  # Generate worker client certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_client.sh k8s_worker
+${path.root}/cfssl/generate_client.sh worker
 EOF
   }
 
@@ -39,11 +39,11 @@ EOF
     destination = "/home/core/ca.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-k8s_worker.pem"
+    source = "${path.root}/secrets/client-worker.pem"
     destination = "/home/core/worker.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-k8s_worker-key.pem"
+    source = "${path.root}/secrets/client-worker-key.pem"
     destination = "/home/core/worker-key.pem"
   }
 

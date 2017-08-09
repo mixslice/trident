@@ -28,37 +28,37 @@ resource "aws_instance" "master" {
   # Generate k8s_master server certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
+${path.root}/cfssl/generate_server.sh apiserver "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
 EOF
   }
-  # Provision k8s_etcd server certificate
+  # Provision apiserver server certificate
   provisioner "file" {
     source = "${path.root}/secrets/ca.pem"
     destination = "/home/core/ca.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/k8s_master.pem"
+    source = "${path.root}/secrets/apiserver.pem"
     destination = "/home/core/apiserver.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/k8s_master-key.pem"
+    source = "${path.root}/secrets/apiserver-key.pem"
     destination = "/home/core/apiserver-key.pem"
   }
 
   # Generate k8s_master client certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_client.sh k8s_master
+${path.root}/cfssl/generate_client.sh master
 EOF
   }
 
-  # Provision k8s_master client certificate
+  # Provision master client certificate
   provisioner "file" {
-    source = "${path.root}/secrets/client-k8s_master.pem"
+    source = "${path.root}/secrets/client-master.pem"
     destination = "/home/core/client.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-k8s_master-key.pem"
+    source = "${path.root}/secrets/client-master-key.pem"
     destination = "/home/core/client-key.pem"
   }
   # Move certificate into kubernetes/ssl

@@ -1,15 +1,7 @@
 {
-    "CN": "example.net",
+    "CN": "kubernetes",
     "key": {
         "algo": "rsa",
         "size": 2048
-    },
-    "names": [
-        {
-            "C": "US",
-            "L": "CA",
-            "ST": "San Francisco"
-        }
-    ]
+    }
 }
-

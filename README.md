@@ -27,10 +27,13 @@ make
 - [x] IAM role
 - [x] Security groups (master, worker and etc)
 - [x] kubernetes machines setup (with coreOS_v1407) (master, worker, and etcd)
-- [x] certificates generate
+- [x] certificates generate (With CFSSL)
 - [x] kubernetes setup: remote (hyperkube and etc)
 - [x] kubernetes setup: local (kubectl)
-- [x] Essential addons: dns, dashboard, heapster
+- [x] Essential addons:
+  - [x] dashboard : using cluster role as clusterAdmin
+  - [x] DNS + DNS Autoscale
+  - [x] heapster (Graph data)
 - [x] Using AWS EC2 Container Registry
 - [ ] Ingress Controller for ALB
 - [ ] Security Group with minimal policies

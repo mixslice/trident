@@ -49,7 +49,7 @@ spec:
       - key: "CriticalAddonsOnly"
         operator: "Exists"
       imagePullSecrets:
-      - name: cn-north-1-ecr-registry-key
+      - name: aws-ecr-cn-north-1
       containers:
         - image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/heapster:v1.3.0
           name: heapster

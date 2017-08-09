@@ -23,6 +23,7 @@ variable "control_cidr" {
 }
 
 variable "k8s_service_ip" {
+  # first in service_ip_range
   default = "10.3.0.1"
 }
 variable "dns_service_ip" {

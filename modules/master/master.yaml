@@ -200,6 +200,7 @@ write_files:
             - --anonymous-auth=false
             - --storage-backend=etcd2
             - --storage-media-type=application/json
+            - --authorization-mode=RBAC
             livenessProbe:
               httpGet:
                 host: 127.0.0.1
