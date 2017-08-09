@@ -4,8 +4,6 @@ until kubectl get pods 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5
 
 if [ "x$NAMESPACE" == "x" ];then
   NAMESPACE="default"
-else
-  NAMESPACE=$1
 fi
 
 AWS_ACCOUNT="493490470276"

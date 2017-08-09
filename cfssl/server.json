@@ -7,9 +7,11 @@
     },
     "names": [
         {
-            "C": "US",
-            "L": "CA",
-            "ST": "San Francisco"
+            "C": "CN",
+            "L": "SH",
+            "O": "system:masters",
+            "OU": "Cluster",
+            "ST": "Shanghai"
         }
     ]
 }

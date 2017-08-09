@@ -31,7 +31,7 @@ resource "aws_instance" "master" {
 ${path.root}/cfssl/generate_server.sh k8s_master "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
 EOF
   }
-  # Provision k8s_etcd server certificate
+  # Provision k8s_master server certificate
   provisioner "file" {
     source = "${path.root}/secrets/ca.pem"
     destination = "/home/core/ca.pem"

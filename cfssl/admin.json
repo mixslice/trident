@@ -1,5 +1,6 @@
 {
-    "CN": "kubernetes",
+    "CN": "admin",
+    "hosts": [""],
     "key": {
         "algo": "rsa",
         "size": 2048
@@ -8,8 +9,8 @@
         {
             "C": "CN",
             "L": "SH",
-            "O": "Mixslice",
-            "OU": "S+",
+            "O": "system:masters",
+            "OU": "Cluster",
             "ST": "Shanghai"
         }
     ]

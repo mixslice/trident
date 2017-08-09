@@ -1,9 +1,15 @@
 {
-    "CN": "example.net",
-    "hosts": [""],
+    "CN": "system:kube-proxy",
+    "hosts": [],
     "key": {
         "algo": "rsa",
         "size": 2048
-    }
+    },
+    "names": [{
+        "C": "CN",
+        "L": "SH",
+        "O": "system:node-proxier",
+        "OU": "Cluster",
+        "ST": "Shanghai"
+    }]
 }
-
