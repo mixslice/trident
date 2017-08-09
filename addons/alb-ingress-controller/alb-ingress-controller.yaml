@@ -90,7 +90,7 @@ metadata:
   labels:
     app: alb-ingress-controller
 imagePullSecrets:
-- name: cn-north-1-ecr-registry-key
+- name: aws-ecr-cn-north-1
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding

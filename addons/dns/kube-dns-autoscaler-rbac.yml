@@ -19,6 +19,8 @@ metadata:
   namespace: kube-system
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
+imagePullSecrets:
+- name: aws-ecr-cn-north-1
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
