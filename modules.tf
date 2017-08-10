@@ -17,7 +17,6 @@ module "sg" {
   vpc_cidr = "${var.vpc_cidr}"
   control_cidr = "${var.control_cidr}"
   # Output
-  # etcd_id   : aws_security_group.k8s-etcd.id
   # master_id : aws_security_group.k8s-master.id
   # worker_id : aws_security_group.k8s-worker.id
 }
@@ -27,8 +26,6 @@ module "iam" {
   # Input
 
   # Output
-  # etcd_profile_id : aws_iam_role.etcd_role.id
-  # etcd_profile_name : aws_iam_instance_profile.etcd_profile.name
   # wroker_profile_id : aws_iam_role.worker_role.id
   # worker_profile_name : aws_iam_instance_profile.worker_profile.name
   # master_profile_id : aws_iam_role.master_role.id
