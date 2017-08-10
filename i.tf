@@ -56,20 +56,12 @@ variable "amis" {
   }
 }
 
-variable "etcd_instance_type" {
-  default = "m3.medium"
-}
-
 variable "master_instance_type" {
   default = "m3.medium"
 }
 
 variable "worker_instance_type" {
   default = "m3.medium"
-}
-
-variable "etcd_volume_size" {
-  default = 25
 }
 
 variable "master_volume_size" {
@@ -96,14 +88,10 @@ variable "flannel_version" {
   default = "v0.7.1"
 }
 
-variable "etcd_count" {
-  default = 1
-}
-
 variable "master_count" {
   default = 1
 }
 
 variable "worker_count" {
-  default = 1
+  default = 2
 }

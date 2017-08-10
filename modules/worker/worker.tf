@@ -29,8 +29,8 @@ resource "aws_instance" "worker" {
   # Generate worker client certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_client.sh worker
-${path.root}/cfssl/generate_client.sh proxy
+${path.root}/cfssl/generate.sh client kube-worker
+${path.root}/cfssl/generate.sh client kube-proxy
 EOF
   }
 
@@ -40,30 +40,35 @@ EOF
     destination = "/home/core/ca.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-worker.pem"
-    destination = "/home/core/worker.pem"
+    source = "${path.root}/secrets/kube-worker.pem"
+    destination = "/home/core/kube-worker.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-worker-key.pem"
-    destination = "/home/core/worker-key.pem"
+    source = "${path.root}/secrets/kube-worker-key.pem"
+    destination = "/home/core/kube-worker-key.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-proxy.pem"
-    destination = "/home/core/proxy.pem"
+    source = "${path.root}/secrets/kube-proxy.pem"
+    destination = "/home/core/kube-proxy.pem"
   }
   provisioner "file" {
-    source = "${path.root}/secrets/client-proxy-key.pem"
-    destination = "/home/core/proxy-key.pem"
+    source = "${path.root}/secrets/kube-proxy-key.pem"
+    destination = "/home/core/kube-proxy-key.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/etcd.pem"
+    destination = "/home/core/etcd.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/etcd-key.pem"
+    destination = "/home/core/etcd-key.pem"
   }
 
   # TODO: permissions on these keys
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p /etc/kubernetes/ssl",
-      "sudo cp /home/core/{ca,worker,worker-key}.pem /etc/kubernetes/ssl/.",
-      "sudo mv /home/core/{proxy,proxy-key}.pem /etc/kubernetes/ssl/.",
-      "sudo mkdir -p /etc/ssl/etcd/",
-      "sudo mv /home/core/{ca,worker,worker-key}.pem /etc/ssl/etcd/."
+      "sudo mv /home/core/{ca,etcd,etcd-key,kube-worker,kube-worker-key,kube-proxy,kube-proxy-key}.pem /etc/kubernetes/ssl/."
     ]
   }
 

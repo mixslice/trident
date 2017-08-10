@@ -46,23 +46,6 @@ module "iam" {
 #   security_group_ids = "2"
 # }
 
-module "etcd" {
-  source = "./modules/etcd"
-
-  etcd_count = "${var.etcd_count}"
-  etcd_ami = "${lookup(var.amis, var.region)}"
-  etcd_instance_type = "${var.etcd_instance_type}"
-  etcd_volume_size = "${var.etcd_volume_size}"
-
-  k8s_etcd_sg_id = "${module.sg.etcd_id}"
-  k8s_subnet_id = "${module.vpc.subnet_id}"
-  k8s_iam_profile_name = "${module.iam.etcd_profile_name}"
-
-  ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "${var.ssh_user_name}"
-  ssh_private_key_path= "${var.ssh_private_key_path}"
-}
-
 module "master" {
   source = "./modules/master"
 
@@ -82,7 +65,7 @@ module "master" {
   cluster_domain = "${var.cluster_domain}"
   k8s_service_ip = "${var.k8s_service_ip}"
   dns_service_ip = "${var.dns_service_ip}"
-  etcd_private_ip = "${module.etcd.private_ips[0]}"
+  etcd_private_ip = "127.0.0.1"
   pod_network = "${var.pod_network}"
   service_ip_range = "${var.service_ip_range}"
   s3_location = "${var.s3_location}"
@@ -111,7 +94,7 @@ module "worker" {
 
   cluster_domain = "${var.cluster_domain}"
   dns_service_ip = "${var.dns_service_ip}"
-  etcd_private_ip = "${module.etcd.private_ips[0]}"
+  etcd_private_ip = "${module.master.private_ips[0]}"
   master_private_ip = "${module.master.private_ips[0]}"
   pod_network = "${var.pod_network}"
   service_ip_range = "${var.service_ip_range}"

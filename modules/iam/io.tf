@@ -1,14 +1,5 @@
 # Input
 
-# Output
-# ETCD
-output "etcd_profile_id"{
-  value = "${ aws_iam_role.etcd_role.id }"
-}
-output "etcd_profile_name"{
-  value = "${ aws_iam_instance_profile.etcd_profile.name }"
-}
-
 # Master
 output "master_profile_id" {
   value = "${ aws_iam_role.master_role.id }"

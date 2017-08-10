@@ -3,15 +3,15 @@ coreos:
   flannel:
     interface: $private_ipv4
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
-    etcd_certfile: /etc/kubernetes/ssl/worker.pem
-    etcd_keyfile: /etc/kubernetes/ssl/worker-key.pem
+    etcd_certfile: /etc/kubernetes/ssl/etcd.pem
+    etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
     etcd_endpoints: https://${ETCD_IP}:2379
 
   locksmith:
     endpoint: https://${ETCD_IP}:2379
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
-    etcd_certfile: /etc/kubernetes/ssl/worker.pem
-    etcd_keyfile: /etc/kubernetes/ssl/worker-key.pem
+    etcd_certfile: /etc/kubernetes/ssl/etcd.pem
+    etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
 
   update:
     reboot-strategy: etcd-lock
@@ -24,8 +24,8 @@ coreos:
           content: |
             [Unit]
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/worker.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
             After=prefetch-flannel.service
             Requires=prefetch-flannel.service
             Description=Prefetch flannel
@@ -43,8 +43,8 @@ coreos:
           content: |
             [Unit]
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/worker.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
     - name: docker.service
       command: start
       drop-ins:
@@ -86,8 +86,8 @@ coreos:
       content: |
         [Unit]
         ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker.pem
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/worker-key.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/kube-worker.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/kube-worker-key.pem
         After=flanneld.service
         Requires=flanneld.service
         After=prefetch-docker-hyperkube.service
@@ -120,8 +120,8 @@ coreos:
           --pod-infra-container-image=${POD_INFRA_CONTAINER_IMAGE} \
           --pod-manifest-path=/etc/kubernetes/manifests \
           --register-node=true \
-          --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-          --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem
+          --tls-cert-file=/etc/kubernetes/ssl/kube-worker.pem \
+          --tls-private-key-file=/etc/kubernetes/ssl/kube-worker-key.pem
         ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
         Restart=always
         RestartSec=10
@@ -161,11 +161,11 @@ write_files:
     content: |
       COREOS_PRIVATE_IPV4=$private_ipv4
       ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCD_CERT_FILE=/etc/kubernetes/ssl/client.pem
-      ETCD_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCD_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+      ETCD_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
       ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/client.pem
-      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
       ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
   - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
     permissions: 0644
@@ -219,8 +219,8 @@ write_files:
         users:
         - name: kubelet
           user:
-            client-certificate: /etc/kubernetes/ssl/worker.pem
-            client-key: /etc/kubernetes/ssl/worker-key.pem
+            client-certificate: /etc/kubernetes/ssl/kube-worker.pem
+            client-key: /etc/kubernetes/ssl/kube-worker-key.pem
         contexts:
         - context:
             cluster: local
@@ -237,13 +237,13 @@ write_files:
           cluster:
             certificate-authority: /etc/kubernetes/ssl/ca.pem
         users:
-        - name: kubelet
+        - name: kube-proxy
           user:
-            client-certificate: /etc/kubernetes/ssl/proxy.pem
-            client-key: /etc/kubernetes/ssl/proxy-key.pem
+            client-certificate: /etc/kubernetes/ssl/kube-proxy.pem
+            client-key: /etc/kubernetes/ssl/kube-proxy-key.pem
         contexts:
         - context:
             cluster: local
-            user: kubelet
-          name: kubelet-context
-        current-context: kubelet-context
+            user: kube-proxy
+          name: kube-proxy@local
+        current-context: kube-proxy@local

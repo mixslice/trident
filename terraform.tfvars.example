@@ -9,11 +9,8 @@ ssh_private_key_path = "~/.ssh/k8s.pem"
 s3_location = "https://s3.cn-north-1.amazonaws.com.cn/<bucket>"
 ecr_location = "<account_id>.dkr.ecr.cn-north-1.amazonaws.com.cn"
 
-
-etcd_instance_type = "t2.micro"
 master_instance_type = "t2.micro"
 worker_instance_type = "t2.micro"
 
-etcd_count = 1
 master_count = 1
-worker_count = 1
+worker_count = 2

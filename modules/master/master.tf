@@ -1,5 +1,5 @@
 ############################
-# K8s Master Instances
+# K8s Master Instances (ETCD included)
 ############################
 resource "aws_instance" "master" {
   count                       = "${var.master_count}"
@@ -28,44 +28,27 @@ resource "aws_instance" "master" {
   # Generate k8s_master server certificate
   provisioner "local-exec" {
     command = <<EOF
-${path.root}/cfssl/generate_server.sh apiserver "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
+    ${path.root}/cfssl/generate_ca.sh
+    ${path.root}/cfssl/generate.sh client-server etcd "${self.private_ip},127.0.0.1"
+    ${path.root}/cfssl/generate.sh client kube-master
+    ${path.root}/cfssl/generate.sh server kube-apiserver "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
+
 EOF
   }
   # Provision apiserver server certificate
   provisioner "file" {
-    source = "${path.root}/secrets/ca.pem"
-    destination = "/home/core/ca.pem"
-  }
-  provisioner "file" {
-    source = "${path.root}/secrets/apiserver.pem"
-    destination = "/home/core/apiserver.pem"
-  }
-  provisioner "file" {
-    source = "${path.root}/secrets/apiserver-key.pem"
-    destination = "/home/core/apiserver-key.pem"
+    source = "${path.root}/secrets"
+    destination = "/home/core/"
   }
 
-  # Generate k8s_master client certificate
-  provisioner "local-exec" {
-    command = <<EOF
-${path.root}/cfssl/generate_client.sh master
-EOF
-  }
-
-  # Provision master client certificate
-  provisioner "file" {
-    source = "${path.root}/secrets/client-master.pem"
-    destination = "/home/core/client.pem"
-  }
-  provisioner "file" {
-    source = "${path.root}/secrets/client-master-key.pem"
-    destination = "/home/core/client-key.pem"
-  }
   # Move certificate into kubernetes/ssl
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p /etc/kubernetes/ssl",
-      "sudo mv /home/core/{ca,apiserver,apiserver-key,client,client-key}.pem /etc/kubernetes/ssl/.",
+      "sudo mv /home/core/secrets/*.pem /etc/kubernetes/ssl/",
+      "rm -rf /home/core/secrets",
+      "sudo systemctl start etcd2",
+      "sudo systemctl enable etcd2"
     ]
   }
 
@@ -79,7 +62,7 @@ data "template_file" "master_yaml" {
   vars {
     CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"
-    ETCD_IP = "${var.etcd_private_ip}"
+    ETCD_IP = "127.0.0.1"
     POD_NETWORK = "${var.pod_network}"
     SERVICE_IP_RANGE = "${var.service_ip_range}"
     S3_LOCATION = "${var.s3_location}"
