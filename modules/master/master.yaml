@@ -1,22 +1,40 @@
 #cloud-config
 coreos:
+  etcd2:
+    advertise-client-urls: https://$private_ipv4:2379
+    listen-client-urls: https://0.0.0.0:2379
+    client-cert-auth: true
+    trusted-ca-file: /etc/kubernetes/ssl/ca.pem
+    cert-file: /etc/kubernetes/ssl/etcd.pem
+    key-file: /etc/kubernetes/ssl/etcd-key.pem
+
   flannel:
     interface: $private_ipv4
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
-    etcd_certfile: /etc/kubernetes/ssl/client.pem
-    etcd_keyfile: /etc/kubernetes/ssl/client-key.pem
+    etcd_certfile: /etc/kubernetes/ssl/etcd.pem
+    etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
     etcd_endpoints: https://${ETCD_IP}:2379
 
   locksmith:
     endpoint: https://${ETCD_IP}:2379
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
-    etcd_certfile: /etc/kubernetes/ssl/client.pem
-    etcd_keyfile: /etc/kubernetes/ssl/client-key.pem
+    etcd_certfile: /etc/kubernetes/ssl/etcd.pem
+    etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
 
   update:
     reboot-strategy: etcd-lock
 
   units:
+    - name: etcd2.service
+      command: start
+      drop-ins:
+        - name: 01-wait-for-certs.conf
+          content: |
+            [Unit]
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
+
     - name: flanneld.service
       command: start
       drop-ins:
@@ -24,8 +42,8 @@ coreos:
           content: |
             [Unit]
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
             Requires=prefetch-flannel.service
             After=prefetch-flannel.service
             [Service]
@@ -42,8 +60,8 @@ coreos:
           content: |
             [Unit]
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/client.pem
-            ConditionFileNotEmpty=/etc/kubernetes/ssl/client-key.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
+            ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
     - name: docker.service
       command: start
       drop-ins:
@@ -85,8 +103,7 @@ coreos:
       content: |
         [Unit]
         ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver.pem
-        ConditionFileNotEmpty=/etc/kubernetes/ssl/apiserver-key.pem
+        ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
         After=flanneld.service
         Requires=flanneld.service
         After=prefetch-docker-hyperkube.service
@@ -158,11 +175,11 @@ write_files:
     content: |
       COREOS_PRIVATE_IPV4=$private_ipv4
       ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCD_CERT_FILE=/etc/kubernetes/ssl/client.pem
-      ETCD_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCD_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+      ETCD_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
       ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
-      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/client.pem
-      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/client-key.pem
+      ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+      ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
       ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
   - path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
     permissions: 0644
@@ -183,19 +200,19 @@ write_files:
             - --bind-address=0.0.0.0
             - --etcd-servers=https://${ETCD_IP}:2379
             - --etcd-cafile=/etc/kubernetes/ssl/ca.pem
-            - --etcd-certfile=/etc/kubernetes/ssl/client.pem
-            - --etcd-keyfile=/etc/kubernetes/ssl/client-key.pem
-            - --kubelet-client-certificate=/etc/kubernetes/ssl/client.pem
-            - --kubelet-client-key=/etc/kubernetes/ssl/client-key.pem
+            - --etcd-certfile=/etc/kubernetes/ssl/etcd.pem
+            - --etcd-keyfile=/etc/kubernetes/ssl/etcd-key.pem
+            - --kubelet-client-certificate=/etc/kubernetes/ssl/kube-master.pem
+            - --kubelet-client-key=/etc/kubernetes/ssl/kube-master-key.pem
             - --allow-privileged=true
             - --service-cluster-ip-range=${SERVICE_IP_RANGE}
             - --secure-port=443
             - --advertise-address=$private_ipv4
             - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
-            - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
-            - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --tls-cert-file=/etc/kubernetes/ssl/kube-apiserver.pem
+            - --tls-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
             - --client-ca-file=/etc/kubernetes/ssl/ca.pem
-            - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --service-account-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
             - --runtime-config=extensions/v1beta1/networkpolicies=true
             - --anonymous-auth=false
             - --storage-backend=etcd2
@@ -275,7 +292,7 @@ write_files:
             - controller-manager
             - --master=http://127.0.0.1:8080
             - --leader-elect=true
-            - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+            - --service-account-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
             - --root-ca-file=/etc/kubernetes/ssl/ca.pem
             livenessProbe:
               httpGet:
