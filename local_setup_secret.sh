@@ -1,10 +1,9 @@
 #!/bin/bash
-
-until kubectl get pods 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
-
 if [ "x$NAMESPACE" == "x" ];then
   NAMESPACE="default"
 fi
+
+until kubectl get secret -n $NAMESPACE 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
 
 AWS_ACCOUNT="493490470276"
 AWS_REGION="cn-north-1"
