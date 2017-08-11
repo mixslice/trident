@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  REFRESH_NAMESPACES: default,kube-system
+kind: ConfigMap
+metadata:
+  name: ecr-dockercfg-refresh
+  namespace: kube-system
