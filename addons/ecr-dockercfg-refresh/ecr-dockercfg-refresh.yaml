@@ -13,7 +13,12 @@ spec:
       labels:
         run: ecr-dockercfg-refresh
     spec:
+      dnsPolicy: Default
+      serviceAccountName: ecr-dockercfg-refresh
       containers:
-      - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-33b53bf
+      - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-1f8f698
         name: ecr-dockercfg-refresh
+        envFrom:
+        - configMapRef:
+            name: ecr-dockercfg-refresh
       restartPolicy: Always

@@ -35,7 +35,7 @@ make
   - [x] DNS + DNS Autoscale
   - [x] heapster (Metrics)
 - [x] Using AWS EC2 Container Registry
-  - [ ] token auto refresh
+  - [x] token auto refresh
 - [x] Traefik Ingress Controller
   - [x] EIP association for edge-router
   - [ ] Let's Encrypt Support
