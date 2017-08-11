@@ -2,7 +2,7 @@ CA_CERT = ./secrets/ca.pem
 ADMIN_KEY = ./secrets/admin-key.pem
 ADMIN_CERT = ./secrets/admin.pem
 MASTER_HOST = $(shell terraform output | grep -A1 master_ip | awk 'NR>1 {print $1}' | xargs echo)
-NAMESPACE ?= kube-system
+SECRET_NAME ?= aws-ecr-cn-north-1
 
 plan: tf_get
 	terraform plan
@@ -44,7 +44,12 @@ node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
 kubectl_dockertoken:
-	NAMESPACE=$(NAMESPACE) ./local_setup_secret.sh
+	kubectl apply -f addons/ecr-dockercfg-refresh/
+
+delete_kubectl_dockertoken:
+	kubectl delete -f addons/ecr-dockercfg-refresh/
+	kubectl delete secrets aws-ecr-cn-north-1
+	kubectl delete secrets aws-ecr-cn-north-1 -n kube-system
 
 label_edge_node:
 	$(eval NODE_NAME := $(shell make output | awk '/worker_private_dns/{getline; print}' | sed 's/\,$///g'))
@@ -52,28 +57,26 @@ label_edge_node:
 
 	kubectl label no $(NODE_NAME) role="edge-router" --overwrite
 
-unlabel_edge_node:
-	kubectl label no node-1 role-
-
 delete_traefik:
-	kubectl apply -f addons/traefik/.
+	kubectl delete -f addons/traefik/
 
 create_traefik:
-	kubectl apply -f addons/traefik/.
+	kubectl apply -f addons/traefik/
 
 create_all_addons: label_edge_node create_essential_addons create_traefik
 
 delete_all_addons: delete_essential_addons delete_traefik
 
 delete_essential_addons:
-	kubectl delete -f addons/dashboard/.
-	kubectl delete -f addons/heapster/.
-	kubectl delete -f addons/dns/.
+	kubectl delete -f addons/dashboard/
+	kubectl delete -f addons/heapster/
+	kubectl delete -f addons/dns/
 
 create_essential_addons:
-	kubectl apply -f addons/dns/.
-	kubectl apply -f addons/heapster/.
-	kubectl apply -f addons/dashboard/.
+	until kubectl get secrets -n kube-system | grep $(SECRET_NAME); do printf 'waiting on secret...\n'; sleep 5; done
+	kubectl apply -f addons/dns/
+	kubectl apply -f addons/heapster/
+	kubectl apply -f addons/dashboard/
 
 sync_upload:
 	aws s3 sync --exclude="admin*" --exclude="README.md" ./secrets/ s3://k8s-secrets
