@@ -30,3 +30,9 @@ output "public_ips" {
 output "private_ips" {
   value = "${aws_instance.worker.*.private_ip}"
 }
+output "instance_ids" {
+  value = "${aws_instance.worker.*.id}"
+}
+output "private_dnss" {
+  value = "${aws_instance.worker.*.private_dns}"
+}

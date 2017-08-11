@@ -3,11 +3,6 @@ kind: Ingress
 metadata:
   name: echoserver
   namespace: default
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internal
-    alb.ingress.kubernetes.io/subnets: subnet-58c5b32f
-    alb.ingress.kubernetes.io/security-groups: sg-7264e716
-    alb.ingress.kubernetes.io/tags: Environment=dev,Team=test
 spec:
   rules:
   - host: echoserver.example.com
