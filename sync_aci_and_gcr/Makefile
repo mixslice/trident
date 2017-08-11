@@ -1,11 +1,13 @@
 FLANNEL_VERSION ?= v0.7.1
-HYPERKUBE_VERSION ?= v1.7.2_coreos.0
+HYPERKUBE_VERSION ?= v1.7.3_coreos.0
 GCR_IMAGES ?= heapster@v1.3.0 \
 			addon-resizer@1.7 \
-			kubedns-amd64@1.8 \
-			kube-dnsmasq-amd64@1.4 \
-			exechealthz-amd64@1.2 \
-			defaultbackend@1.0
+			kubernetes-dashboard-amd64:v1.6.3 \
+			k8s-dns-kube-dns-amd64@1.14.4 \
+			k8s-dns-sidecar-amd64@1.14.4 \
+			k8s-dns-dnsmasq-nanny-amd64@1.14.4 \
+			cluster-proportional-autoscaler-amd64@@1.1.2-r2 \
+			echoserver@1.4
 
 sync_targets = $(addprefix image_, $(GCR_IMAGES))
 GCR_PREFIX = gcr.io/google_containers
