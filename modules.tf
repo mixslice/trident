@@ -32,6 +32,13 @@ module "iam" {
   # master_profile_name : aws_iam_instance_profile.master_profile.name
 }
 
+module "eip" {
+  source = "./modules/eip"
+  # Input
+  allocation_id = "${var.eip_allocation_id}"
+  instance_id = "${module.worker.instance_ids[0]}"
+}
+
 # module "elb" {
 #   source = "./modules/elb"
 # }

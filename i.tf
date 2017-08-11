@@ -56,6 +56,8 @@ variable "amis" {
   }
 }
 
+variable "eip_allocation_id" {}
+
 variable "master_instance_type" {
   default = "m3.medium"
 }

@@ -33,11 +33,14 @@ make
 - [x] Essential addons:
   - [x] dashboard : using cluster role as clusterAdmin
   - [x] DNS + DNS Autoscale
-  - [x] heapster (Graph data)
+  - [x] heapster (Metrics)
 - [x] Using AWS EC2 Container Registry
-- [ ] Ingress Controller for ALB
+  - [ ] token auto refresh
+- [x] Traefik Ingress Controller
+  - [x] EIP association for edge-router
+  - [ ] Let's Encrypt Support
 - [ ] Security Group with minimal policies
 - [ ] Monitoring with Prometheus
 - [ ] Logging with Fluentd and cloudwatch
 - [ ] Kubernetes upgrade mechanism
-- [ ] rkt as container runtime
+- [ ] Ansible or kubespray

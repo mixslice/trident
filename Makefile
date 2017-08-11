@@ -10,7 +10,7 @@ plan: tf_get
 apply: tf_get
 	terraform apply
 
-build: apply kubecfg sync_upload kubectl_dockertoken create_essential_addons build_complete
+build: apply kubecfg sync_upload kubectl_dockertoken create_all_addons build_complete
 
 build_complete:
 	osascript -e 'display notification "Your build has finished!" with title "Jobs Done"'
@@ -44,7 +44,26 @@ node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
 kubectl_dockertoken:
-	./local_setup_secret.sh
+	NAMESPACE=$(NAMESPACE) ./local_setup_secret.sh
+
+label_edge_node:
+	$(eval NODE_NAME := $(shell make output | awk '/worker_private_dns/{getline; print}' | sed 's/\,$///g'))
+	until kubectl get no | grep $(NODE_NAME); do printf 'waiting on node...\n'; sleep 5; done
+
+	kubectl label no $(NODE_NAME) role="edge-router" --overwrite
+
+unlabel_edge_node:
+	kubectl label no node-1 role-
+
+delete_traefik:
+	kubectl apply -f addons/traefik/.
+
+create_traefik:
+	kubectl apply -f addons/traefik/.
+
+create_all_addons: label_edge_node create_essential_addons create_traefik
+
+delete_all_addons: delete_essential_addons delete_traefik
 
 delete_essential_addons:
 	kubectl delete -f addons/dashboard/.

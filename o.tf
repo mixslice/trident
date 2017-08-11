@@ -11,3 +11,6 @@ output "k8s_worker_ip" {
 output "k8s_worker_private_ip" {
   value = "${module.worker.private_ips}"
 }
+output "k8s_worker_private_dns" {
+  value = "${module.worker.private_dnss}"
+}
