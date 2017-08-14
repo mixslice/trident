@@ -1,24 +1,42 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v2alpha1
+kind: CronJob
 metadata:
   name: ecr-dockercfg-refresh
   namespace: kube-system
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      run: ecr-dockercfg-refresh
+  schedule: "0 */11 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          dnsPolicy: Default
+          serviceAccountName: ecr-dockercfg-refresh
+          containers:
+          - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-ac83697
+            name: ecr-dockercfg-refresh
+            envFrom:
+            - configMapRef:
+                name: ecr-dockercfg-refresh
+          restartPolicy: OnFailure
+
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: first-run-ecr
+  namespace: kube-system
+spec:
   template:
     metadata:
-      labels:
-        run: ecr-dockercfg-refresh
+      name: first-run-ecr
     spec:
       dnsPolicy: Default
       serviceAccountName: ecr-dockercfg-refresh
       containers:
-      - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-1f8f698
+      - image: daocloud.io/mixslice/ecr-dockercfg-refresh:master-ac83697
         name: ecr-dockercfg-refresh
         envFrom:
         - configMapRef:
             name: ecr-dockercfg-refresh
-      restartPolicy: Always
+      restartPolicy: Never

@@ -88,3 +88,7 @@ sync_download:
 
 wait_for_kubectl_version:
 	until kubectl get po 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
+
+delete_secrets:
+	kubectl delete secrets aws-ecr-cn-north-1
+	kubectl delete secrets aws-ecr-cn-north-1 -n kube-system
