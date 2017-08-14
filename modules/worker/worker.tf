@@ -74,7 +74,7 @@ EOF
 
 
   tags {
-    Name = "k8s-worker-${count.index}"
+    Name = "k8s-${var.type}-${count.index}"
   }
 }
 
@@ -85,6 +85,7 @@ data "template_file" "worker_yaml" {
   vars {
     CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"
+    NODE_LABELS = "${var.node_labels}"
     ETCD_IP = "${var.etcd_private_ip}"
     POD_NETWORK = "${var.pod_network}"
     MASTER_HOST = "${var.master_private_ip}"

@@ -51,19 +51,13 @@ delete_kubectl_dockertoken:
 	kubectl delete secrets aws-ecr-cn-north-1
 	kubectl delete secrets aws-ecr-cn-north-1 -n kube-system
 
-label_edge_node:
-	$(eval NODE_NAME := $(shell make output | awk '/worker_private_dns/{getline; print}' | sed 's/\,$///g'))
-	until kubectl get no | grep $(NODE_NAME); do printf 'waiting on node...\n'; sleep 5; done
-
-	kubectl label no $(NODE_NAME) role="edge-router" --overwrite
-
 delete_traefik:
 	kubectl delete -f addons/traefik/
 
 create_traefik:
 	kubectl apply -f addons/traefik/
 
-create_all_addons: label_edge_node create_essential_addons create_traefik
+create_all_addons: create_essential_addons create_traefik
 
 delete_all_addons: delete_essential_addons delete_traefik
 

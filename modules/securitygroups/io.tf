@@ -8,3 +8,6 @@ output "master_id" {
 output "worker_id" {
   value = "${aws_security_group.k8s-worker.id}"
 }
+output "edge_node_id" {
+  value = "${aws_security_group.k8s-edge-node.id}"
+}

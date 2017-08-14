@@ -116,7 +116,7 @@ coreos:
           --container-runtime=docker \
           --hostname-override=$private_ipv4 \
           --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-          --node-labels node-role.kubernetes.io/node \
+          --node-labels node-role.kubernetes.io/node,${NODE_LABELS} \
           --pod-infra-container-image=${POD_INFRA_CONTAINER_IMAGE} \
           --pod-manifest-path=/etc/kubernetes/manifests \
           --register-node=true \

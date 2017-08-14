@@ -1,3 +1,4 @@
+variable "type" {}
 variable "worker_count" {}
 variable "worker_ami" {}
 variable "worker_instance_type" {}
@@ -13,6 +14,7 @@ variable "ssh_private_key_path" {}
 
 variable "cluster_domain" {}
 variable "dns_service_ip" {}
+variable "node_labels" {}
 variable "etcd_private_ip" {}
 variable "master_private_ip" {}
 variable "pod_network" {}
