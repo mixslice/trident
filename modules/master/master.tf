@@ -62,7 +62,7 @@ data "template_file" "master_yaml" {
   vars {
     CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"
-    ETCD_IP = "127.0.0.1"
+    ETCD_IP = ""
     POD_NETWORK = "${var.pod_network}"
     SERVICE_IP_RANGE = "${var.service_ip_range}"
     S3_LOCATION = "${var.s3_location}"

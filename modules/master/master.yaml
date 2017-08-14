@@ -13,10 +13,10 @@ coreos:
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
     etcd_certfile: /etc/kubernetes/ssl/etcd.pem
     etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
-    etcd_endpoints: https://${ETCD_IP}:2379
+    etcd_endpoints: https://$private_ipv4:2379
 
   locksmith:
-    endpoint: https://${ETCD_IP}:2379
+    endpoint: https://$private_ipv4:2379
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
     etcd_certfile: /etc/kubernetes/ssl/etcd.pem
     etcd_keyfile: /etc/kubernetes/ssl/etcd-key.pem
@@ -34,7 +34,8 @@ coreos:
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
-
+            [Service]
+            EnvironmentFile=/etc/environment
     - name: flanneld.service
       command: start
       drop-ins:
@@ -62,6 +63,8 @@ coreos:
             ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd.pem
             ConditionFileNotEmpty=/etc/kubernetes/ssl/etcd-key.pem
+            [Service]
+            EnvironmentFile=/etc/environment
     - name: docker.service
       command: start
       drop-ins:
@@ -174,13 +177,18 @@ write_files:
     permissions: 0644
     content: |
       COREOS_PRIVATE_IPV4=$private_ipv4
+      ETCD_ADVERTISE_CLIENT_URLS=https://$private_ipv4:2379
+      ETCD_CLIENT_CERT_AUTH=true
+      ETCD_NAME=$private_ipv4
+      ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379
+      ETCD_TRUSTED_CA_FILE=/etc/kubernetes/ssl/ca.pem
       ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
       ETCD_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
       ETCD_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
       ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
       ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
       ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
-      ETCDCTL_ENDPOINT=https://${ETCD_IP}:2379
+      ETCDCTL_ENDPOINT=https://$private_ipv4:2379
   - path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
     permissions: 0644
     content: |
@@ -198,7 +206,7 @@ write_files:
             - /hyperkube
             - apiserver
             - --bind-address=0.0.0.0
-            - --etcd-servers=https://${ETCD_IP}:2379
+            - --etcd-servers=https://$private_ipv4:2379
             - --etcd-cafile=/etc/kubernetes/ssl/ca.pem
             - --etcd-certfile=/etc/kubernetes/ssl/etcd.pem
             - --etcd-keyfile=/etc/kubernetes/ssl/etcd-key.pem
