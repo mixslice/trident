@@ -95,5 +95,9 @@ variable "master_count" {
 }
 
 variable "worker_count" {
-  default = 2
+  default = 1
+}
+
+variable "edge_worker_count" {
+  default = 1
 }

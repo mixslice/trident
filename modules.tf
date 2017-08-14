@@ -36,7 +36,7 @@ module "eip" {
   source = "./modules/eip"
   # Input
   allocation_id = "${var.eip_allocation_id}"
-  instance_id = "${module.worker.instance_ids[0]}"
+  instance_id = "${module.edge.instance_ids[0]}"
 }
 
 # module "elb" {
@@ -82,7 +82,7 @@ module "master" {
 
 module "worker" {
   source = "./modules/worker"
-
+  type = "worker"
   worker_count = "${var.worker_count}"
   worker_ami = "${lookup(var.amis, var.region)}"
   worker_instance_type = "${var.worker_instance_type}"
@@ -98,6 +98,38 @@ module "worker" {
 
   cluster_domain = "${var.cluster_domain}"
   dns_service_ip = "${var.dns_service_ip}"
+  node_labels = "role=worker"
+  etcd_private_ip = "${module.master.private_ips[0]}"
+  master_private_ip = "${module.master.private_ips[0]}"
+  pod_network = "${var.pod_network}"
+  service_ip_range = "${var.service_ip_range}"
+  s3_location = "${var.s3_location}"
+  ecr_location = "${var.ecr_location}"
+  flannel_version = "${var.flannel_version}"
+  pod_infra_container_image = "${var.pod_infra_container_image}"
+  kube_image = "${var.kube_image}"
+  kube_version = "${var.kube_version}"
+}
+
+module "edge"{
+  source = "./modules/worker"
+  type = "edge"
+  worker_count = "${var.edge_worker_count}"
+  worker_ami = "${lookup(var.amis, var.region)}"
+  worker_instance_type = "${var.worker_instance_type}"
+  worker_volume_size = "${var.worker_volume_size}"
+
+  k8s_worker_sg_id = "${module.sg.edge_node_id}"
+  k8s_subnet_id = "${module.vpc.subnet_id}"
+  k8s_iam_profile_name = "${module.iam.worker_profile_name}"
+
+  ssh_key_name = "${var.ssh_key_name}"
+  ssh_user_name = "${var.ssh_user_name}"
+  ssh_private_key_path= "${var.ssh_private_key_path}"
+
+  cluster_domain = "${var.cluster_domain}"
+  dns_service_ip = "${var.dns_service_ip}"
+  node_labels = "role=edge-router"
   etcd_private_ip = "${module.master.private_ips[0]}"
   master_private_ip = "${module.master.private_ips[0]}"
   pod_network = "${var.pod_network}"

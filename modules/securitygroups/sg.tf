@@ -5,15 +5,34 @@
 resource "aws_security_group" "k8s-master" {
   vpc_id = "${var.vpc_id}"
   name = "k8s-master"
-
-  # TODO: actually make this accept only ssh
+  # SSH access
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # ICMP
+  ingress {
+    from_port = 8
+    to_port = 0
+    protocol = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Kubectl access
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Allow all internal
   ingress {
     from_port = 0
     to_port = 0
-    protocol = -1
-    cidr_blocks = ["0.0.0.0/0"]
+    protocol = "-1"
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
-
   # Allow all outbound traffic
   egress {
     from_port = 0
@@ -43,20 +62,55 @@ resource "aws_security_group" "k8s-worker" {
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
-  # Allow all traffic from the API ELB
-  # ingress {
-  #   from_port = 0
-  #   to_port = 0
-  #   protocol = "-1"
-  #   security_groups = ["${aws_security_group.k8s-master.id}"]
-  # }
+  # and SSH access
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  # Allow all traffic from control host IP
+}
+
+resource "aws_security_group" "k8s-edge-node" {
+  vpc_id = "${var.vpc_id}"
+  name = "k8s-edge-node"
+
+  # Allow all outbound
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all internal
   ingress {
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.control_cidr}"]
+    cidr_blocks = ["${var.vpc_cidr}"]
+  }
+  # and SSH access
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # http
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # https
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
 }

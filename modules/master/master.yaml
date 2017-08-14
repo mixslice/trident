@@ -221,7 +221,7 @@ write_files:
             - --tls-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
             - --client-ca-file=/etc/kubernetes/ssl/ca.pem
             - --service-account-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
-            - --runtime-config=extensions/v1beta1/networkpolicies=true
+            - --runtime-config=batch/v2alpha1=true
             - --anonymous-auth=false
             - --storage-backend=etcd2
             - --storage-media-type=application/json

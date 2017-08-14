@@ -35,17 +35,40 @@ resource "aws_instance" "master" {
 
 EOF
   }
-  # Provision apiserver server certificate
+  # Provision certificate
   provisioner "file" {
-    source = "${path.root}/secrets"
-    destination = "/home/core/"
+    source = "${path.root}/secrets/ca.pem"
+    destination = "/home/core/ca.pem"
   }
-
+  provisioner "file" {
+    source = "${path.root}/secrets/etcd.pem"
+    destination = "/home/core/etcd.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/etcd-key.pem"
+    destination = "/home/core/etcd-key.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/kube-master.pem"
+    destination = "/home/core/kube-master.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/kube-master-key.pem"
+    destination = "/home/core/kube-master-key.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/kube-apiserver.pem"
+    destination = "/home/core/kube-apiserver.pem"
+  }
+  provisioner "file" {
+    source = "${path.root}/secrets/kube-apiserver-key.pem"
+    destination = "/home/core/kube-apiserver-key.pem"
+  }
   # Move certificate into kubernetes/ssl
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p /etc/kubernetes/ssl",
-      "sudo mv /home/core/secrets/*.pem /etc/kubernetes/ssl/",
+      "sudo mv /home/core/{ca,etcd,etcd-key,kube-master,kube-master-key,kube-apiserver,kube-apiserver-key}.pem /etc/kubernetes/ssl/",
       "rm -rf /home/core/secrets",
       "sudo systemctl start etcd2",
       "sudo systemctl enable etcd2"

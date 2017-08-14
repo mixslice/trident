@@ -1,16 +1,22 @@
 # All printed outputs
+# Masters
 output "k8s_master_ip" {
   value = "${module.master.public_ips}"
 }
 output "k8s_master_private_ip" {
   value = "${module.master.private_ips}"
 }
+# Workers
 output "k8s_worker_ip" {
   value = "${module.worker.public_ips}"
 }
 output "k8s_worker_private_ip" {
   value = "${module.worker.private_ips}"
 }
-output "k8s_worker_private_dns" {
-  value = "${module.worker.private_dnss}"
+# EDGE workers
+output "k8s_edge_ip" {
+  value = "${module.eip.ip}"
+}
+output "k8s_edge_private_ip" {
+  value = "${module.edge.private_ips}"
 }
