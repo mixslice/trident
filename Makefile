@@ -10,7 +10,7 @@ plan: tf_get
 apply: tf_get
 	terraform apply
 
-build: apply kubecfg sync_upload kubectl_dockertoken create_all_addons build_complete
+build: apply kubecfg sync_upload wait_for_kubectl_version kubectl_dockertoken create_all_addons build_complete
 
 build_complete:
 	osascript -e 'display notification "Your build has finished!" with title "Jobs Done"'
@@ -73,7 +73,7 @@ delete_essential_addons:
 	kubectl delete -f addons/dns/
 
 create_essential_addons:
-	until kubectl get secrets -n kube-system | grep $(SECRET_NAME); do printf 'waiting on secret...\n'; sleep 5; done
+	until kubectl get secrets -n kube-system | grep $(SECRET_NAME) 2>/dev/null; do printf 'waiting on secret...\n'; sleep 5; done
 	kubectl apply -f addons/dns/
 	kubectl apply -f addons/heapster/
 	kubectl apply -f addons/dashboard/
@@ -85,3 +85,6 @@ sync_upload:
 sync_download:
 	aws s3 sync s3://k8s-secrets ./secrets/
 	cp ./secrets/terraform.tfstate terraform.tfstate
+
+wait_for_kubectl_version:
+	until kubectl get po 2>/dev/null; do printf 'waiting on kubectl...\n'; sleep 5; done
