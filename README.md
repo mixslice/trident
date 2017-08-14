@@ -39,7 +39,7 @@ make
 - [x] Traefik Ingress Controller
   - [x] EIP association for edge-router
   - [ ] Let's Encrypt Support
-- [ ] Security Group with minimal policies
+- [x] Security Group with minimal policies
 - [ ] Monitoring with Prometheus
 - [ ] Logging with Fluentd and cloudwatch
 - [ ] Kubernetes upgrade mechanism

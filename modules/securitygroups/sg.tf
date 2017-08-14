@@ -74,7 +74,7 @@ resource "aws_security_group" "k8s-worker" {
 
 resource "aws_security_group" "k8s-edge-node" {
   vpc_id = "${var.vpc_id}"
-  name = "k8s-edge-node"
+  name = "k8s-edge"
 
   # Allow all outbound
   egress {
