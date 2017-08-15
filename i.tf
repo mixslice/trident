@@ -5,7 +5,34 @@ provider "aws" {
   region = "${var.region}"
 }
 
-# Variables
+variable "ansibleFilter" {
+  default = "k8s"
+}
+
+# K8s Variables
+variable "master_count" {
+  default = 1
+}
+variable "master_volume_size" { default = 25 }
+variable "master_node_labels" { default = "role=master" }
+variable "master_instance_type" { default = "m3.medium" }
+variable "master_ansibleNodeType" { default = "master" }
+
+variable "worker_count" {
+  default = 1
+}
+variable "worker_volume_size" { default = 50 }
+variable "worker_node_labels" { default = "role=worker" }
+variable "worker_instance_type" { default = "m3.medium" }
+variable "worker_ansibleNodeType" { default = "worker" }
+
+variable "edge_count" {
+  default = 1
+}
+variable "edge_node_labels" { default = "role=edge-router" }
+variable "edge_ansibleNodeType" { default = "edge" }
+
+# Other variables
 variable "access_key" {}
 variable "secret_key" {}
 
@@ -58,46 +85,15 @@ variable "amis" {
 
 variable "eip_allocation_id" {}
 
-variable "master_instance_type" {
-  default = "m3.medium"
-}
-
-variable "worker_instance_type" {
-  default = "m3.medium"
-}
-
-variable "master_volume_size" {
-  default = 25
-}
-
-variable "worker_volume_size" {
-  default = 50
-}
-
 variable "kube_image" {
   default = "quay.io/coreos/hyperkube"
 }
-
 variable "kube_version" {
   default = "v1.7.3_coreos.0"
 }
-
 variable "pod_infra_container_image" {
   default = "registry.aliyuncs.com/archon/pause-amd64:3.0"
 }
-
 variable "flannel_version" {
   default = "v0.7.1"
-}
-
-variable "master_count" {
-  default = 1
-}
-
-variable "worker_count" {
-  default = 1
-}
-
-variable "edge_worker_count" {
-  default = 1
 }
