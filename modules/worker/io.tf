@@ -1,12 +1,13 @@
+# Worker io.tf
 variable "type" {}
-variable "worker_count" {}
-variable "worker_ami" {}
-variable "worker_instance_type" {}
-variable "worker_volume_size" {}
+variable "count" {}
+variable "ami" {}
+variable "instance_type" {}
+variable "volume_size" {}
 
-variable "k8s_worker_sg_id" {}
-variable "k8s_subnet_id" {}
-variable "k8s_iam_profile_name" {}
+variable "sg_id" {}
+variable "subnet_id" {}
+variable "iam_profile_name" {}
 
 variable "ssh_key_name" {}
 variable "ssh_user_name" {}
@@ -25,6 +26,10 @@ variable "flannel_version" {}
 variable "pod_infra_container_image" {}
 variable "kube_image" {}
 variable "kube_version" {}
+
+variable "ansibleFilter" {}
+variable "ansibleNodeType" {}
+
 
 output "public_ips" {
   value = "${aws_instance.worker.*.public_ip}"

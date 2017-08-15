@@ -3,20 +3,20 @@
 ############################################
 
 resource "aws_instance" "worker" {
-  count = "${var.worker_count}"
+  count = "${var.count}"
 
-  ami = "${var.worker_ami}"
-  instance_type = "${var.worker_instance_type}"
+  ami = "${var.ami}"
+  instance_type = "${var.instance_type}"
 
   root_block_device = {
     volume_type = "gp2"
-    volume_size = "${var.worker_volume_size}"
+    volume_size = "${var.volume_size}"
   }
 
-  vpc_security_group_ids = ["${var.k8s_worker_sg_id}"]
-  subnet_id = "${var.k8s_subnet_id}"
+  vpc_security_group_ids = ["${var.sg_id}"]
+  subnet_id = "${var.subnet_id}"
   associate_public_ip_address = true
-  iam_instance_profile = "${var.k8s_iam_profile_name}"
+  iam_instance_profile = "${var.iam_profile_name}"
   user_data = "${data.template_file.worker_yaml.rendered}"
   key_name = "${var.ssh_key_name}"
 
@@ -34,7 +34,7 @@ ${path.root}/cfssl/generate.sh client kube-proxy
 EOF
   }
 
-  # Provision k8s_master client certificate
+  # Provision k8s certificates
   provisioner "file" {
     source = "${path.root}/secrets/ca.pem"
     destination = "/home/core/ca.pem"
@@ -75,13 +75,16 @@ EOF
 
   tags {
     Name = "k8s-${var.type}-${count.index}"
+    ansibleFilter = "${var.ansibleFilter}"
+    ansibleNodeType = "${var.ansibleNodeType}"
+    ansibleNodeName = "${var.ansibleNodeType}-${count.index}"
   }
 }
 
 
 data "template_file" "worker_yaml" {
 
-  template = "${file("${path.module}/worker.yaml")}"
+  template = "${file("${path.module}/worker.yml")}"
   vars {
     CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"

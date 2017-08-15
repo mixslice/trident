@@ -135,7 +135,7 @@ coreos:
           --cni-conf-dir=/etc/kubernetes/cni/net.d \
           --container-runtime=docker \
           --hostname-override=$private_ipv4 \
-          --node-labels node-role.kubernetes.io/master \
+          --node-labels node-role.kubernetes.io/master,${NODE_LABELS} \
           --pod-infra-container-image=${POD_INFRA_CONTAINER_IMAGE} \
           --pod-manifest-path=/etc/kubernetes/manifests \
           --register-node=true \

@@ -2,20 +2,20 @@
 # K8s Master Instances (ETCD included)
 ############################
 resource "aws_instance" "master" {
-  count                       = "${var.master_count}"
+  count                       = "${var.count}"
 
-  ami                         = "${var.master_ami}"
-  instance_type               = "${var.master_instance_type}"
+  ami                         = "${var.ami}"
+  instance_type               = "${var.instance_type}"
 
   root_block_device = {
     volume_type = "gp2"
-    volume_size               = "${var.master_volume_size }"
+    volume_size               = "${var.volume_size }"
   }
 
-  vpc_security_group_ids      = ["${var.k8s_master_sg_id}"]
-  subnet_id                   = "${var.k8s_subnet_id}"
+  vpc_security_group_ids      = ["${var.sg_id}"]
+  subnet_id                   = "${var.subnet_id}"
   associate_public_ip_address = true
-  iam_instance_profile        = "${var.k8s_iam_profile_name}"
+  iam_instance_profile        = "${var.iam_profile_name}"
   user_data                   = "${data.template_file.master_yaml.rendered}"
   key_name                    = "${var.ssh_key_name}"
 
@@ -31,7 +31,7 @@ resource "aws_instance" "master" {
     ${path.root}/cfssl/generate_ca.sh
     ${path.root}/cfssl/generate.sh client-server etcd "${self.private_ip},127.0.0.1"
     ${path.root}/cfssl/generate.sh client kube-master
-    ${path.root}/cfssl/generate.sh server kube-apiserver "${self.public_ip},${self.private_ip},${var.k8s_service_ip},kubernetes.default,kubernetes"
+    ${path.root}/cfssl/generate.sh server kube-apiserver "${self.public_ip},${self.private_ip},${var.service_ip},kubernetes.default,kubernetes"
 
 EOF
   }
@@ -76,12 +76,15 @@ EOF
   }
 
   tags {
-    Name = "k8s-master-${count.index}"
+    Name = "k8s-${var.type}-${count.index}"
+    ansibleFilter = "${var.ansibleFilter}"
+    ansibleNodeType = "${var.ansibleNodeType}"
+    ansibleNodeName = "${var.ansibleNodeType}-${count.index}"
   }
 }
 
 data "template_file" "master_yaml" {
-  template = "${file("${path.module}/master.yaml")}"
+  template = "${file("${path.module}/master.yml")}"
   vars {
     CLUSTER_DOMAIN = "${var.cluster_domain}"
     DNS_SERVICE_IP = "${var.dns_service_ip}"
@@ -89,6 +92,7 @@ data "template_file" "master_yaml" {
     POD_NETWORK = "${var.pod_network}"
     SERVICE_IP_RANGE = "${var.service_ip_range}"
     S3_LOCATION = "${var.s3_location}"
+    NODE_LABELS = "${var.node_labels}"
     FLANNEL_VERSION = "${var.flannel_version}"
     POD_INFRA_CONTAINER_IMAGE = "${var.pod_infra_container_image}"
     HYPERKUBE_ECR_LOCATION= "${var.ecr_location}"

@@ -2,7 +2,9 @@
 
 The infrastructure control repository for our AWS
 
-Uses Terraform mainly to control.
+Currently we uses Terraform to bootstrap everything.
+
+We are switching to Terraform + Ansible! For a rather stable version go to release v0.1
 
 ---
 
@@ -19,7 +21,11 @@ Download [Terraform](https://www.terraform.io/)
 
 ## Deploy
 ```
-make
+make build
+```
+## Remote setup
+```
+make remote_kubecfg
 ```
 
 ## Roadmap
@@ -44,3 +50,8 @@ make
 - [ ] Logging with Fluentd and cloudwatch
 - [ ] Kubernetes upgrade mechanism
 - [ ] Ansible or kubespray
+
+# Some other requirements
+If you are on a brand new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other Prerequisites that may present a challenge.
+
+1.
