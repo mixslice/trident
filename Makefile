@@ -86,3 +86,6 @@ wait_for_kubectl_version:
 delete_secrets:
 	kubectl delete secrets aws-ecr-cn-north-1
 	kubectl delete secrets aws-ecr-cn-north-1 -n kube-system
+
+traefik_ui:
+	open http://localhost:8001/api/v1/namespaces/kube-system/services/traefik-web-ui:web/proxy/

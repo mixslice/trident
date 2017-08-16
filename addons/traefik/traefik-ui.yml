@@ -10,18 +10,18 @@ spec:
   - name: web
     port: 80
     targetPort: 8580
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: traefik-web-ui
-  namespace: kube-system
-spec:
-  rules:
-  - host: traefik-ui.local
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: traefik-web-ui
-          servicePort: web
+# ---
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: traefik-web-ui
+#   namespace: kube-system
+# spec:
+#   rules:
+#   - host: traefik-ui.local
+#     http:
+#       paths:
+#       - path: /
+#         backend:
+#           serviceName: traefik-web-ui
+#           servicePort: web
