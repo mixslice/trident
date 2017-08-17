@@ -1,0 +1,36 @@
+---
+##############################
+# Setup K8s components
+##############################
+- hosts: k8s-masters
+  gather_facts: false
+  become: yes
+  roles:
+    - common
+    - etcd
+    - master
+
+# - hosts: k8s-workers
+#   become: yes
+#   roles:
+#     - common
+#     - worker
+#
+# - hosts: k8s-edges
+#   become: yes
+#   roles:
+#     - common
+#     - worker
+#     - edge
+
+##############################
+# Setup kubectl
+##############################
+# - hosts: localhost
+#   tasks:
+#     - name: test
+#       raw: "echo a"
+#
+# - hosts: localhost
+#   roles:
+#     - kubecontrol

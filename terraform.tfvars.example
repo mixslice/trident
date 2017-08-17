@@ -6,12 +6,6 @@ secret_key = ""
 ssh_key_name = "k8s"
 ssh_private_key_path = "~/.ssh/k8s.pem"
 
-# location for aci files storage
-s3_location = "https://s3.cn-north-1.amazonaws.com.cn/<bucket>"
-
-# ecr location for private registry
-ecr_location = "<account_id>.dkr.ecr.cn-north-1.amazonaws.com.cn"
-
 # service expose
 eip_allocation_id = ""
 

@@ -32,3 +32,6 @@ secrets/
 # End of https://www.gitignore.io/api/terraform
 
 sync_aci_and_gcr/*.aci
+
+### Ansible redundants
+*.retry

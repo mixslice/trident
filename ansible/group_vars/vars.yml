@@ -1,0 +1,40 @@
+---
+# #####################
+# All vars (Global vars)
+# #####################
+region: "cn-north-1"
+
+# #####################
+# Images location
+# #####################
+s3_location : "https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin"
+ecr_location : "493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn"
+kube_image : "493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/hyperkube"
+
+# #####################
+# Kubernetes specific IP addresses
+# #####################
+vpc_cidr        : "10.0.0.0/16"
+control_cidr    : "0.0.0.0/0"
+service_ip_range: "10.3.0.0/24"
+# k8s_service_ip must be first in service_ip_range
+k8s_service_ip  : "10.3.0.1"
+dns_service_ip  : "10.3.0.10"
+pod_network     : "10.2.0.0/16"
+
+# #####################
+# Kubernetes machines differenciation
+# #####################
+ansibleFilter: "k8s"
+master_ansibleNodeType: "master"
+master_node_labels: "role=master"
+worker_ansibleNodeType: "worker"
+worker_node_labels: "role=worker"
+edge_ansibleNodeType: "edge"
+edge_node_labels  : "role=edge"
+
+# #####################
+# All Versioning
+# #####################
+kube_version    : "v1.7.3_coreos.0"
+flannel_version : "v0.7.1"

@@ -1,0 +1,11 @@
+#!/bin/bash -e
+echo "#!/bin/bash -e" > /opt/bin/docker-login
+until /usr/bin/docker run \
+  --rm daocloud.io/mixslice/awscli \
+  aws ecr get-login --region=cn-north-1 >> /opt/bin/docker-login
+do
+  echo "retrying"
+  sleep 5.2
+done
+chmod +x /opt/bin/docker-login
+echo "✓"

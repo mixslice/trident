@@ -1,0 +1,14 @@
+# ###################################
+# Common setup for all ec2 instances
+# ###################################
+---
+- name: create manifests directory
+  raw: "sudo mkdir -p /etc/kubernetes/manifests"
+
+- name: load docker-login-gen
+  file:
+
+# - name: Prefetch flanneld
+#   tasks:
+#
+# - name: Prefetch docker hyperkube
