@@ -1,0 +1,4 @@
+role_dir: "roles/common"
+python_version: "2"
+pypy_version: "5.8.0"
+ansible_python_interpreter: "/opt/python/bin/python"

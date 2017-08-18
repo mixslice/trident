@@ -1,0 +1,8 @@
+[Unit]
+After=network-online.target
+Requires=network-online.target
+Description=Prefetch flannel
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rkt fetch --insecure-options=all {{S3_LOCATION}}/flannel_{{FLANNEL_VERSION}}.aci
