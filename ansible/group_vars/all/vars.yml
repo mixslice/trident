@@ -3,6 +3,7 @@
 # All vars (Global vars)
 # #####################
 REGION: "cn-north-1"
+ansible_python_interpreter: "/opt/python/bin/python"
 
 # #####################
 # Images location

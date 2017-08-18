@@ -1,5 +1,8 @@
-[k8s-masters]
+[test-machine]
 52.80.80.113
+
+[k8s-masters]
+52.80.52.219
 
 [k8s-workers]
 54.222.167.83

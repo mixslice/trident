@@ -1,0 +1,13 @@
+COREOS_PRIVATE_IPV4=$private_ipv4
+ETCD_ADVERTISE_CLIENT_URLS=https://$private_ipv4:2379
+ETCD_CLIENT_CERT_AUTH=true
+ETCD_NAME=$private_ipv4
+ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379
+ETCD_TRUSTED_CA_FILE=/etc/kubernetes/ssl/ca.pem
+ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem
+ETCD_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+ETCD_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
+ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
+ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/etcd.pem
+ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem
+ETCDCTL_ENDPOINT=https://$private_ipv4:2379

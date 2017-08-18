@@ -1,0 +1,23 @@
+---
+- name: "upload 01-wait-for-certs.conf to etcd2"
+  copy:
+    src: "{{playbook_dir}}/{{role_dir}}/files/01-wait-for-certs.conf"
+    dest: "/etc/systemd/system/etcd2.service.d/01-wait-for-certs.conf"
+    owner: root
+    mode: 0644
+
+- name: "upload etcd2 environment"
+  copy:
+    src: "{{playbook_dir}}/{{role_dir}}/files/environment"
+    dest: "/etc/environment"
+    owner: root
+    mode: 0644
+
+# - name: "upload cerficates"
+#   file: name={{item}}
+#   with_items:
+#   - /opt/bin/
+#   - /etc/flannel/
+#   - /etc/systemd/system/locksmithd.service.d/
+#   - /etc/systemd/system/flanneld.service.d/
+#   - /etc/systemd/system/docker.service.d/

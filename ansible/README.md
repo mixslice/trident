@@ -5,3 +5,7 @@ To run:
 ```
 ansible-playbook site.yml -i hosts
 ```
+
+Note:
+
+Our master is our etcd!

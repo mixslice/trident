@@ -2,7 +2,17 @@
 # Common setup for all ec2 instances
 # ###################################
 ---
+# Create directories
+- name: create directories
+  file: name={{item}} state=directory
+  with_items:
+  - /opt/bin/
+  - /etc/flannel/
+  - /etc/systemd/system/locksmithd.service.d/
+  - /etc/systemd/system/flanneld.service.d/
+  - /etc/systemd/system/docker.service.d/
 
+# bootstraping with python
 - name: "Check if need to install python"
   raw: "stat /opt/python/.bootstrapped"
   register: need_bootstrap
@@ -30,48 +40,32 @@
     state: touch
   changed_when: false
 
+# Upload configs
+
 - name: "upload docker-login-gen"
-  become: yes
   copy:
     src: "{{playbook_dir}}/{{role_dir}}/files/docker-login-gen"
     dest: "/opt/bin/docker-login-gen"
     owner: root
     mode: 0755
 
-- name: "upload 01-wait-for-certs.conf to etcd2"
-  copy:
-    src: "{{playbook_dir}}/{{role_dir}}/files/01-wait-for-certs.conf"
-    dest: "/etc/systemd/system/etcd2.service.d/01-wait-for-certs.conf"
+- name: "uplaod flanneld, locksmithd and docker configs"
+  file:
+    src: "{{playbook_dir}}/{{role_dir}}/{{item.name}}"
+    dest: "{{item.dest}}/{{item.name}}"
+    state: file
     owner: root
     mode: 0644
+  with_items:
+    - { name: "01-wait-for-certs.conf", dest: "/etc/systemd/system/locksmithd.service.d"}
+    - { name: "50-network-config.conf", dest: "/etc/systemd/system/flanneld.service.d"}
+    - { name: "40-flannel.conf", dest: "/etc/systemd/system/docker.service.d"}
 
-- name: "create locksmithd.service.d"
-  raw: "mkdir -p /etc/systemd/system/locksmithd.service.d"
-
-- name: "upload 01-wait-for-certs.conf to locksmithd"
-  copy:
-    src: "{{playbook_dir}}/{{role_dir}}/files/01-wait-for-certs.conf"
-    dest: "/etc/systemd/system/locksmithd.service.d/01-wait-for-certs.conf"
-    owner: root
-    mode: 0644
-
-- name: "create flanneld.service.d"
-  raw: "mkdir -p /etc/systemd/system/flanneld.service.d"
-
-- name: "upload 50-network-config.conf"
-  copy:
-    src: "{{playbook_dir}}/{{role_dir}}/files/50-network-config.conf"
-    dest: "/etc/systemd/system/flanneld.service.d/50-network-config.conf"
-    owner: root
-    mode: 0644
-
-- name: "create docker.service.d"
-  raw: "mkdir -p /etc/systemd/system/docker.service.d"
-
-- name: "upload 40-flannel.conf to docker.service.d"
-  copy:
-    src: "{{playbook_dir}}/{{role_dir}}/files/40-flannel.conf"
-    dest: "/etc/systemd/system/docker.service.d/40-flannel.conf"
+# Upload services
+- name: "Upload services"
+  file:
+    src: "{{playbook_dir}}/{{role_dir}}/files/docker-ecr-cfg.service"
+    dest: "/etc/systemd/system/docker-ecr-cfg.service"
     owner: root
     mode: 0644
 

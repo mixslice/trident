@@ -16,4 +16,5 @@ worker_instance_type = "t2.micro"
 
 master_count = 1
 worker_count = 1
+# Edge number must comply with eip number, and this is not auto linked
 edge_count = 1

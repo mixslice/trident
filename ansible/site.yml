@@ -2,12 +2,17 @@
 ##############################
 # Setup K8s components
 ##############################
-- hosts: k8s-masters
+- hosts: localhost
+  connection: local
+  roles:
+    - ansible-config
+    - cert
+
+- hosts: test-machine
   gather_facts: false
   become: yes
   roles:
     - common
-    - etcd
     - master
 
 # - hosts: k8s-workers
