@@ -89,3 +89,10 @@ delete_secrets:
 
 traefik_ui:
 	open http://localhost:8001/api/v1/namespaces/kube-system/services/traefik-web-ui:web/proxy/
+
+ansible_v:
+	apply ansible_setup kubecfg sync_upload wait_for_kubectl_version kubectl_dockertoken create_all_addons build_complete
+
+ansible_setup:
+	terraform output > ./ansible/terraform-output
+	ansible-playbook -i ./ansible/hosts site.yml

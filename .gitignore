@@ -35,3 +35,8 @@ sync_aci_and_gcr/*.aci
 
 ### Ansible redundants
 *.retry
+
+### Any binary/tar
+*.tar
+*.zip
+*.tar.bz2
