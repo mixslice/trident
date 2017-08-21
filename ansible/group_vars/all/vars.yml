@@ -11,17 +11,19 @@ ansible_python_interpreter: "/opt/python/bin/python"
 S3_LOCATION : "https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin"
 ECR_LOCATION : "493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn"
 KUBE_IMAGE : "quay.io/coreos/hyperkube"
+POD_INFRA_CONTAINER_IMAGE: "registry.aliyuncs.com/archon/pause-amd64:3.0"
 
 # #####################
 # Kubernetes specific IP addresses
 # #####################
-vpc_cidr        : "10.0.0.0/16"
-control_cidr    : "0.0.0.0/0"
-service_ip_range: "10.3.0.0/24"
+VPC_CIDR        : "10.0.0.0/16"
+CONTROL_CIDR    : "0.0.0.0/0"
+SERVICE_IP_RANGE: "10.3.0.0/24"
 # k8s_service_ip must be first in service_ip_range
-k8s_service_ip  : "10.3.0.1"
-dns_service_ip  : "10.3.0.10"
-pod_network     : "10.2.0.0/16"
+K8S_SERVICE_IP  : "10.3.0.1"
+DNS_SERVICE_IP  : "10.3.0.10"
+POD_NETWORK     : "10.2.0.0/16"
+CLUSTER_DOMAIN  : "cluster.local"
 
 # #####################
 # Kubernetes machines differenciation
@@ -39,3 +41,13 @@ edge_node_labels  : "role=edge"
 # #####################
 KUBE_VERSION    : "v1.7.3_coreos.0"
 FLANNEL_VERSION : "v0.7.1"
+
+# #####################
+# Variables from terraform
+# #####################
+EDGE_IP : "54.222.167.83"
+EDGE_PRIVATE_IP: "10.0.254.240"
+MASTER_IP : "52.80.59.112"
+MASTER_PRIVATE_IP: "10.0.151.57"
+WORKER_IP : "52.80.103.128"
+WORKER_PRIVATE_IP: "10.0.195.13"

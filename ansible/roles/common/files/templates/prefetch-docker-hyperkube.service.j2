@@ -8,4 +8,4 @@ Description=Prefetch docker Hyperkube
 Type=oneshot
 RemainAfterExit=yes
 ExecStartPre=/usr/bin/docker pull {{ECR_LOCATION}}/hyperkube:{{KUBE_VERSION}}
-ExecStart=/usr/bin/docker tag {{ECR_LOCATION}}/hyperkube:{{KUBE_VERSION}} ${ KUBE_IMAGE}:{{KUBE_VERSION}}
+ExecStart=/usr/bin/docker tag {{ECR_LOCATION}}/hyperkube:{{KUBE_VERSION}} {{ KUBE_IMAGE}}:{{KUBE_VERSION}}

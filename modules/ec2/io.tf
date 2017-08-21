@@ -9,6 +9,7 @@ variable "ssh_key_name" {}
 variable "sg_id" {}
 variable "subnet_id" {}
 variable "iam_profile_name" {}
+variable "user_data" {}
 
 variable "ansibleFilter" {}
 variable "ansibleNodeType" {}

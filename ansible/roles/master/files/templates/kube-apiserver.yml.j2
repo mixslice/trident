@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-apiserver
+    image: {{KUBE_IMAGE}}:{{KUBE_VERSION}}
+    command:
+    - /hyperkube
+    - apiserver
+    - --bind-address=0.0.0.0
+    - --etcd-servers=https://{{ansible_default_ipv4.address}}:2379
+    - --etcd-cafile=/etc/kubernetes/ssl/ca.pem
+    - --etcd-certfile=/etc/kubernetes/ssl/etcd.pem
+    - --etcd-keyfile=/etc/kubernetes/ssl/etcd-key.pem
+    - --kubelet-client-certificate=/etc/kubernetes/ssl/kube-master.pem
+    - --kubelet-client-key=/etc/kubernetes/ssl/kube-master-key.pem
+    - --allow-privileged=true
+    - --service-cluster-ip-range={{SERVICE_IP_RANGE}}
+    - --secure-port=443
+    - --advertise-address={{ansible_default_ipv4.address}}
+    - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+    - --tls-cert-file=/etc/kubernetes/ssl/kube-apiserver.pem
+    - --tls-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
+    - --client-ca-file=/etc/kubernetes/ssl/ca.pem
+    - --service-account-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem
+    - --runtime-config=batch/v2alpha1=true
+    - --anonymous-auth=false
+    - --storage-backend=etcd2
+    - --storage-media-type=application/json
+    - --authorization-mode=RBAC
+    livenessProbe:
+      httpGet:
+        host: 127.0.0.1
+        port: 8080
+        path: /healthz
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    ports:
+    - containerPort: 443
+      hostPort: 443
+      name: https
+    - containerPort: 8080
+      hostPort: 8080
+      name: local
+    volumeMounts:
+    - mountPath: /etc/kubernetes/ssl
+      name: ssl-certs-kubernetes
+      readOnly: true
+    - mountPath: /etc/ssl/certs
+      name: ssl-certs-host
+      readOnly: true
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/ssl
+    name: ssl-certs-kubernetes
+  - hostPath:
+      path: /usr/share/ca-certificates
+    name: ssl-certs-host

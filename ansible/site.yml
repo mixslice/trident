@@ -2,31 +2,34 @@
 ##############################
 # Setup K8s components
 ##############################
-- hosts: localhost
-  connection: local
-  roles:
-    - ansible-config
-    - cert
 
-- hosts: test-machine
-  gather_facts: false
+- hosts: all
   become: yes
+  gather_facts: false
   roles:
     - common
+
+- hosts: k8s-masters
+  become: yes
+  roles:
     - master
 
-# - hosts: k8s-workers
-#   become: yes
-#   roles:
-#     - common
-#     - worker
-#
-# - hosts: k8s-edges
-#   become: yes
-#   roles:
-#     - common
-#     - worker
-#     - edge
+- hosts: k8s-workers
+  become: yes
+  vars: {
+    NODE_LABELS: "{{worker_node_labels}}"
+  }
+  roles:
+    - worker
+
+
+- hosts: k8s-edges
+  become: yes
+  vars: {
+    NODE_LABELS: "{{edge_node_labels}}"
+  }
+  roles:
+    - worker
 
 ##############################
 # Setup kubectl

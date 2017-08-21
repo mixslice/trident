@@ -1,1 +1,4 @@
 role_dir: "roles/worker"
+secrets_dir: "../secrets"
+MASTER_HOST: "{{MASTER_PRIVATE_IP}}"
+ETCD_IP: "{{MASTER_PRIVATE_IP}}"

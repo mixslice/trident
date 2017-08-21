@@ -2,16 +2,6 @@
 # Common setup for all ec2 instances
 # ###################################
 ---
-# Create directories
-- name: create directories
-  file: name={{item}} state=directory
-  with_items:
-  - /opt/bin/
-  - /etc/flannel/
-  - /etc/systemd/system/locksmithd.service.d/
-  - /etc/systemd/system/flanneld.service.d/
-  - /etc/systemd/system/docker.service.d/
-
 # bootstraping with python
 - name: "Check if need to install python"
   raw: "stat /opt/python/.bootstrapped"
@@ -34,14 +24,22 @@
   raw: "PYTHON_VERSION={{python_version}} PYPY_VERSION={{pypy_version}} sh /tmp/bootstrap.sh"
   when: need_bootstrap | failed
 
-- name: "Set bootstrapped file"
+- name: "Set python bootstrapped file"
   file:
     path: /opt/python/.bootstrapped
     state: touch
   changed_when: false
 
-# Upload configs
+# Create directories
+- name: create directories
+  file: name={{item}} state=directory
+  with_items:
+  - /opt/bin/
+  - /etc/flannel/
+  - /etc/kubernetes/ssl/
+  - /etc/kubernetes/manifests/
 
+# Upload configs
 - name: "upload docker-login-gen"
   copy:
     src: "{{playbook_dir}}/{{role_dir}}/files/docker-login-gen"
@@ -49,21 +47,9 @@
     owner: root
     mode: 0755
 
-- name: "uplaod flanneld, locksmithd and docker configs"
-  file:
-    src: "{{playbook_dir}}/{{role_dir}}/{{item.name}}"
-    dest: "{{item.dest}}/{{item.name}}"
-    state: file
-    owner: root
-    mode: 0644
-  with_items:
-    - { name: "01-wait-for-certs.conf", dest: "/etc/systemd/system/locksmithd.service.d"}
-    - { name: "50-network-config.conf", dest: "/etc/systemd/system/flanneld.service.d"}
-    - { name: "40-flannel.conf", dest: "/etc/systemd/system/docker.service.d"}
-
 # Upload services
-- name: "Upload services"
-  file:
+- name: "Upload docker-ecr-cfg services"
+  copy:
     src: "{{playbook_dir}}/{{role_dir}}/files/docker-ecr-cfg.service"
     dest: "/etc/systemd/system/docker-ecr-cfg.service"
     owner: root
@@ -71,7 +57,7 @@
 
 - name: "Upload templated prefetch-flannel.service"
   template:
-    src: "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-flannel.service"
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-flannel.service.j2"
     dest: "/etc/systemd/system/prefetch-flannel.service"
     owner: root
     mode: 0644
@@ -79,7 +65,15 @@
 - name: "upload templated prefetch-docker-hyperkube.service"
   template:
     src:
-      "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-docker-hyperkube.service"
+      "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-docker-hyperkube.service.j2"
     dest: "/etc/systemd/system/prefetch-docker-hyperkube.service"
     owner: root
     mode: 0644
+
+# Load services
+- name: daemon-reload
+  command: systemctl daemon-reload
+
+# Run docker-ecr-cfg
+- name: "Fetch docker token"
+  service: name=docker-ecr-cfg state=started

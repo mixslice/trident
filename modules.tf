@@ -50,6 +50,7 @@ module "master" {
   sg_id = "${module.sg.master_id}"
   subnet_id = "${module.vpc.subnet_id}"
   iam_profile_name = "${module.iam.master_profile_name}"
+  user_data = "${module.master_user_data.rendered_data}"
   ssh_key_name = "${var.ssh_key_name}"
 
   ansibleFilter = "${var.ansibleFilter}"
@@ -67,6 +68,7 @@ module "worker" {
   sg_id = "${module.sg.worker_id}"
   subnet_id = "${module.vpc.subnet_id}"
   iam_profile_name = "${module.iam.worker_profile_name}"
+  user_data = "${module.worker_user_data.rendered_data}"
   ssh_key_name = "${var.ssh_key_name}"
 
   ansibleFilter = "${var.ansibleFilter}"
@@ -84,8 +86,30 @@ module "edge"{
   sg_id = "${module.sg.edge_node_id}"
   subnet_id = "${module.vpc.subnet_id}"
   iam_profile_name = "${module.iam.worker_profile_name}"
+  user_data = "${module.worker_user_data.rendered_data}"
   ssh_key_name = "${var.ssh_key_name}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.edge_ansibleNodeType}"
+}
+
+module "cert" {
+  source = "./modules/cert"
+
+  master_public_ips = "${join(",", module.master.public_ips)}"
+  master_private_ips = "${join(",", module.master.private_ips)}"
+  service_ip = "${var.k8s_service_ip}"
+}
+
+module "master_user_data"{
+  source = "./modules/user_data/master"
+
+  pod_network = "${var.pod_network}"
+}
+
+module "worker_user_data"{
+  source = "./modules/user_data/worker"
+
+  pod_network = "${var.pod_network}"
+  etcd_ip = "${join(",", module.master.private_ips)}"
 }

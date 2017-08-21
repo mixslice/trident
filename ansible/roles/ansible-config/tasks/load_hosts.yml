@@ -1,0 +1,3 @@
+---
+- name: "Load hosts output from terraform into our host file"
+  script: ./script.sh

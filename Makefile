@@ -95,4 +95,3 @@ ansible_v:
 
 ansible_setup:
 	terraform output > ./ansible/terraform-output
-	ansible-playbook -i ./ansible/hosts site.yml

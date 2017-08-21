@@ -1,0 +1,18 @@
+k8s_edge_ip = [
+    54.222.167.83
+]
+k8s_edge_private_ip = [
+    10.0.254.240
+]
+k8s_master_ip = [
+    52.80.59.112
+]
+k8s_master_private_ip = [
+    10.0.151.57
+]
+k8s_worker_ip = [
+    52.80.103.128
+]
+k8s_worker_private_ip = [
+    10.0.195.13
+]

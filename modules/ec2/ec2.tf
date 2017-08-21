@@ -16,6 +16,7 @@ resource "aws_instance" "ec2" {
   subnet_id                   = "${var.subnet_id}"
   associate_public_ip_address = true
   iam_instance_profile        = "${var.iam_profile_name}"
+  user_data                   = "${var.user_data}"
   key_name                    = "${var.ssh_key_name}"
 
   tags {

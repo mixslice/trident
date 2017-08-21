@@ -1,23 +1,64 @@
 ---
-- name: "upload 01-wait-for-certs.conf to etcd2"
+- name: "upload cerficates for etcd and master"
   copy:
-    src: "{{playbook_dir}}/{{role_dir}}/files/01-wait-for-certs.conf"
-    dest: "/etc/systemd/system/etcd2.service.d/01-wait-for-certs.conf"
+    src: "{{playbook_dir}}/{{secrets_dir}}/{{item}}.pem"
+    dest: "/etc/kubernetes/ssl/{{item}}.pem"
+    owner: root
+    mode: 0644
+  with_items:
+    - ca
+    - etcd
+    - etcd-key
+    - kube-master
+    - kube-master-key
+    - kube-apiserver
+    - kube-apiserver-key
+
+- name: "upload kubernetes config"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/{{item}}.j2"
+    dest: "/etc/kubernetes/manifests/{{item}}"
+    owner: root
+    mode: 0644
+  with_items:
+    - kube-apiserver.yml
+    - kube-proxy.yml
+    - kube-controller-manager.yml
+    - kube-scheduler.yml
+
+- name: "upload kubelet.service"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/kubelet.service.j2"
+    dest: "/etc/systemd/system/kubelet.service"
     owner: root
     mode: 0644
 
-- name: "upload etcd2 environment"
-  copy:
+- name: "upload etcd environments"
+  template:
     src: "{{playbook_dir}}/{{role_dir}}/files/environment"
     dest: "/etc/environment"
     owner: root
     mode: 0644
 
-# - name: "upload cerficates"
-#   file: name={{item}}
-#   with_items:
-#   - /opt/bin/
-#   - /etc/flannel/
-#   - /etc/systemd/system/locksmithd.service.d/
-#   - /etc/systemd/system/flanneld.service.d/
-#   - /etc/systemd/system/docker.service.d/
+# Start all
+- name: Reloading daemon
+  command: "systemctl daemon-reload"
+
+- name: Ensure all services are restarted
+  service:
+    name: "{{item}}"
+    state: restarted
+  with_items:
+    - etcd2
+    - flanneld
+    - locksmithd
+
+- name: Ensure kubelet is started
+  service:
+    name: "{{item}}"
+    state: started
+  with_items:
+    - kubelet
+
+- name: Ensure etcd2 is started on boot
+  service: name=etcd2 enabled=yes
