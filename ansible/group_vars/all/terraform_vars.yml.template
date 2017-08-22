@@ -1,0 +1,9 @@
+# #####################
+# Variables from terraform
+# #####################
+EDGE_IP : {{edge_ip}}
+EDGE_PRIVATE_IP: {{edge_private_ip}}
+MASTER_IP : {{master_ip}}
+MASTER_PRIVATE_IP: {{master_private_ip}}
+WORKER_IP : {{worker_ip}}
+WORKER_PRIVATE_IP: {{worker_private_ip}}
