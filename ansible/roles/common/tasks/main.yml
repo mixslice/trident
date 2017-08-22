@@ -30,14 +30,22 @@
     state: touch
   changed_when: false
 
+- name: "Check if need to run common boostrap again"
+  raw: "stat /home/core/.bootstrapped"
+  register: need_common_bootstrap
+  ignore_errors: True
+  changed_when: false
+
 # Create directories
 - name: create directories
   file: name={{item}} state=directory
   with_items:
   - /opt/bin/
-  - /etc/flannel/
+  - /etc/systemd/system/locksmithd.service.d/
+  - /etc/systemd/system/flanneld.service.d/
   - /etc/kubernetes/ssl/
   - /etc/kubernetes/manifests/
+  when: need_common_bootstrap | failed
 
 # Upload configs
 - name: "upload docker-login-gen"
@@ -46,6 +54,7 @@
     dest: "/opt/bin/docker-login-gen"
     owner: root
     mode: 0755
+  when: need_common_bootstrap | failed
 
 # Upload services
 - name: "Upload docker-ecr-cfg services"
@@ -54,6 +63,7 @@
     dest: "/etc/systemd/system/docker-ecr-cfg.service"
     owner: root
     mode: 0644
+  when: need_common_bootstrap | failed
 
 - name: "Upload templated prefetch-flannel.service"
   template:
@@ -61,6 +71,7 @@
     dest: "/etc/systemd/system/prefetch-flannel.service"
     owner: root
     mode: 0644
+  when: need_common_bootstrap | failed
 
 - name: "upload templated prefetch-docker-hyperkube.service"
   template:
@@ -69,6 +80,13 @@
     dest: "/etc/systemd/system/prefetch-docker-hyperkube.service"
     owner: root
     mode: 0644
+  when: need_common_bootstrap | failed
+
+- name: "Set common bootstrapped file"
+  file:
+    path: /home/core/.bootstrapped
+    state: touch
+  changed_when: false
 
 # Load services
 - name: daemon-reload

@@ -95,3 +95,4 @@ ansible_v:
 
 ansible_setup:
 	terraform output > ./ansible/terraform-output
+	python ./ansible/load.py

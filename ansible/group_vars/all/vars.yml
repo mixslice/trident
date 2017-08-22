@@ -41,13 +41,3 @@ edge_node_labels  : "role=edge"
 # #####################
 KUBE_VERSION    : "v1.7.3_coreos.0"
 FLANNEL_VERSION : "v0.7.1"
-
-# #####################
-# Variables from terraform
-# #####################
-EDGE_IP : "54.222.167.83"
-EDGE_PRIVATE_IP: "10.0.254.240"
-MASTER_IP : "52.80.59.112"
-MASTER_PRIVATE_IP: "10.0.151.57"
-WORKER_IP : "52.80.103.128"
-WORKER_PRIVATE_IP: "10.0.195.13"

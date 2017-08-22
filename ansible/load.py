@@ -8,7 +8,7 @@ host_file_dir = "/hosts"
 host_file_template_dir = "/hosts.template"
 ansible_vars_dir = "/group_vars/all/terraform_vars.yml"
 ansible_vars_tempalte_dir = "/group_vars/all/terraform_vars.yml.template"
-pre_dirs = 3
+pre_dirs = 0
 
 all_identifiers = [
   "master_ip",

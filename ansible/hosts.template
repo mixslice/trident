@@ -1,6 +1,3 @@
-[Local]
-localhost
-
 [k8s-masters]
 {{master_ip}}
 
@@ -13,4 +10,4 @@ localhost
 [k8s-nodes:children]
 k8s-masters
 k8s-workers
-k8s-nodes
+k8s-edges

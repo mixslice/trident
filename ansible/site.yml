@@ -3,7 +3,7 @@
 # Setup K8s components
 ##############################
 
-- hosts: all
+- hosts: k8s-nodes
   become: yes
   gather_facts: false
   roles:
@@ -35,10 +35,5 @@
 # Setup kubectl
 ##############################
 # - hosts: localhost
-#   tasks:
-#     - name: test
-#       raw: "echo a"
-#
-# - hosts: localhost
 #   roles:
-#     - kubecontrol
+#     - ansible-config

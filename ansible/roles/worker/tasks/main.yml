@@ -1,4 +1,7 @@
 ---
+# ############
+# Worker tasks
+# ############
 - name: "upload certificates for worker"
   copy:
     src: "{{playbook_dir}}/{{secrets_dir}}/{{item}}.pem"
@@ -14,7 +17,24 @@
     - kube-proxy
     - kube-proxy-key
 
-- name: "upload kubernetes config"
+- name: "upload environments file"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/environment"
+    dest: "/etc/environment"
+    owner: root
+    mode: 0644
+
+- name: "upload conf files"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/{{item.name}}"
+    dest: "{{item.dest}}/{{item.name}}"
+    owner: root
+    mode: 0644
+  with_items:
+    - { name : "01-wait-for-certs.conf", dest: "/etc/systemd/system/locksmithd.service.d" }
+    - { name : "50-network-config.conf", dest: "/etc/systemd/system/flanneld.service.d" }
+
+- name: "upload manifests"
   template:
     src: "{{playbook_dir}}/{{role_dir}}/files/templates/{{item}}.j2"
     dest: "/etc/kubernetes/manifests/{{item}}"
@@ -22,6 +42,14 @@
     mode: 0644
   with_items:
     - kube-proxy.yml
+
+- name: "upload proxy and worker config"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/{{item}}.j2"
+    dest: "/etc/kubernetes/{{item}}"
+    owner: root
+    mode: 0644
+  with_items:
     - worker-kubeconfig.yml
     - proxy-kubeconfig.yml
 
@@ -29,13 +57,6 @@
   template:
     src: "{{playbook_dir}}/{{role_dir}}/files/templates/kubelet.service.j2"
     dest: "/etc/systemd/system/kubelet.service"
-    owner: root
-    mode: 0644
-
-- name: "upload etcd environments"
-  template:
-    src: "{{playbook_dir}}/{{role_dir}}/files/environment"
-    dest: "/etc/environment"
     owner: root
     mode: 0644
 
