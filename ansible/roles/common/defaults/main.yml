@@ -1,0 +1,3 @@
+role_dir: "roles/common"
+python_version: "2"
+pypy_version: "5.8.0"

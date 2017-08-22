@@ -1,0 +1,9 @@
+[Unit]
+After=docker.service
+Requires=docker.service
+Description=docker ecr login
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/opt/bin/docker-login-gen
+ExecStart=/opt/bin/docker-login

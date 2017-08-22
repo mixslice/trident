@@ -14,7 +14,6 @@ variable "master_count" {
   default = 1
 }
 variable "master_volume_size" { default = 25 }
-variable "master_node_labels" { default = "role=master" }
 variable "master_instance_type" { default = "m3.medium" }
 variable "master_ansibleNodeType" { default = "master" }
 
@@ -22,14 +21,12 @@ variable "worker_count" {
   default = 1
 }
 variable "worker_volume_size" { default = 50 }
-variable "worker_node_labels" { default = "role=worker" }
 variable "worker_instance_type" { default = "m3.medium" }
 variable "worker_ansibleNodeType" { default = "worker" }
 
 variable "edge_count" {
   default = 1
 }
-variable "edge_node_labels" { default = "role=edge-router" }
 variable "edge_ansibleNodeType" { default = "edge" }
 
 # Other variables
@@ -37,10 +34,6 @@ variable "access_key" {}
 variable "secret_key" {}
 
 variable "ssh_key_name" {}
-variable "ssh_user_name" {
-  default = "core"
-}
-variable "ssh_private_key_path" {}
 
 variable "vpc_cidr" {
   default = "10.0.0.0/16"
@@ -66,9 +59,6 @@ variable "service_ip_range" {
 variable "cluster_domain" {
   default = "cluster.local"
 }
-
-variable "s3_location" {}
-variable "ecr_location" {}
 
 variable "region" {
   description = "The region to which you want to deploy"

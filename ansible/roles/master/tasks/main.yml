@@ -1,0 +1,78 @@
+---
+# ############
+# Master tasks
+# ############
+- name: "upload cerficates for etcd and master"
+  copy:
+    src: "{{playbook_dir}}/{{secrets_dir}}/{{item}}.pem"
+    dest: "/etc/kubernetes/ssl/{{item}}.pem"
+    owner: root
+    mode: 0644
+  with_items:
+    - ca
+    - etcd
+    - etcd-key
+    - kube-master
+    - kube-master-key
+    - kube-apiserver
+    - kube-apiserver-key
+
+- name: "upload environments file"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/environment"
+    dest: "/etc/environment"
+    owner: root
+    mode: 0644
+
+- name: "upload conf files"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/{{item.name}}"
+    dest: "{{item.dest}}/{{item.name}}"
+    owner: root
+    mode: 0644
+  with_items:
+    - { name : "01-wait-for-certs.conf", dest: "/etc/systemd/system/etcd2.service.d" }
+    - { name : "01-wait-for-certs.conf", dest: "/etc/systemd/system/locksmithd.service.d" }
+    - { name : "50-network-config.conf", dest: "/etc/systemd/system/flanneld.service.d" }
+
+- name: "upload manifests"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/{{item}}.j2"
+    dest: "/etc/kubernetes/manifests/{{item}}"
+    owner: root
+    mode: 0644
+  with_items:
+    - kube-apiserver.yml
+    - kube-proxy.yml
+    - kube-controller-manager.yml
+    - kube-scheduler.yml
+
+- name: "upload kubelet.service"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/kubelet.service.j2"
+    dest: "/etc/systemd/system/kubelet.service"
+    owner: root
+    mode: 0644
+
+# Start all
+- name: Reloading daemon
+  command: "systemctl daemon-reload"
+
+- name: Ensure all basic services are restarted
+  service:
+    name: "{{item}}"
+    state: restarted
+  with_items:
+    - etcd2
+    - flanneld
+    - locksmithd
+
+- name: Ensure kubelet is started
+  service:
+    name: "{{item}}"
+    state: started
+  with_items:
+    - kubelet
+
+- name: Ensure etcd2 is started on boot
+  service: name=etcd2 enabled=yes

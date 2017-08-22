@@ -1,0 +1,40 @@
+[Unit]
+ConditionFileIsExecutable=/usr/lib/coreos/kubelet-wrapper
+ConditionFileNotEmpty=/etc/kubernetes/ssl/ca.pem
+After=flanneld.service
+Requires=flanneld.service
+After=prefetch-docker-hyperkube.service
+Requires=prefetch-docker-hyperkube.service
+[Service]
+EnvironmentFile=/etc/environment
+Environment="KUBELET_IMAGE={{S3_LOCATION}}/hyperkube_{{KUBE_VERSION}}.aci"
+Environment="RKT_RUN_ARGS=\
+  --uuid-file-save=/var/run/kubelet-pod.uuid \
+  --insecure-options=image \
+  --volume var-log,kind=host,source=/var/log \
+  --mount volume=var-log,target=/var/log \
+  --volume dns,kind=host,source=/etc/resolv.conf \
+  --mount volume=dns,target=/etc/resolv.conf"
+ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
+ExecStartPre=/usr/bin/mkdir -p /var/log/containers
+ExecStartPre=/usr/bin/systemctl is-active flanneld.service
+ExecStart=/usr/lib/coreos/kubelet-wrapper \
+  --allow-privileged=true \
+  --anonymous-auth=false \
+  --api-servers=http://127.0.0.1:8080 \
+  --cloud-provider=aws \
+  --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+  --cluster-dns={{DNS_SERVICE_IP}} \
+  --cluster-domain={{CLUSTER_DOMAIN}} \
+  --cni-conf-dir=/etc/kubernetes/cni/net.d \
+  --container-runtime=docker \
+  --hostname-override={{ansible_default_ipv4.address}} \
+  --node-labels node-role.kubernetes.io/master,{{NODE_LABELS}} \
+  --pod-infra-container-image={{POD_INFRA_CONTAINER_IMAGE}} \
+  --pod-manifest-path=/etc/kubernetes/manifests \
+  --register-node=true \
+  --register-with-taints node-role.kubernetes.io/master='':NoSchedule
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

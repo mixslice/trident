@@ -1,0 +1,97 @@
+# ###################################
+# Common setup for all ec2 instances
+# ###################################
+---
+# bootstraping with python
+- name: "Check if need to install python"
+  raw: "stat /opt/python/.bootstrapped"
+  register: need_bootstrap
+  ignore_errors: True
+  changed_when: false
+
+- name: "scp python tar file"
+  become: no
+  local_action : "command scp {{playbook_dir}}/{{role_dir}}/files/python/pypy.tar.bz2 core@{{inventory_hostname}}:/tmp/pypy.tar.bz2"
+  when: need_bootstrap | failed
+
+- name: "scp bootstrap.sh"
+  become: no
+  local_action : "command scp {{playbook_dir}}/{{role_dir}}/files/python/bootstrap.sh core@{{inventory_hostname}}:/tmp/bootstrap.sh"
+  when: need_bootstrap | failed
+
+- name: "run bootstrap"
+  become: yes
+  raw: "PYTHON_VERSION={{python_version}} PYPY_VERSION={{pypy_version}} sh /tmp/bootstrap.sh"
+  when: need_bootstrap | failed
+
+- name: "Set python bootstrapped file"
+  file:
+    path: /opt/python/.bootstrapped
+    state: touch
+  changed_when: false
+
+- name: "Check if need to run common boostrap again"
+  raw: "stat /home/core/.bootstrapped"
+  register: need_common_bootstrap
+  ignore_errors: True
+  changed_when: false
+
+# Create directories
+- name: create directories
+  file: name={{item}} state=directory
+  with_items:
+  - /opt/bin/
+  - /etc/systemd/system/locksmithd.service.d/
+  - /etc/systemd/system/flanneld.service.d/
+  - /etc/kubernetes/ssl/
+  - /etc/kubernetes/manifests/
+  when: need_common_bootstrap | failed
+
+# Upload configs
+- name: "upload docker-login-gen"
+  copy:
+    src: "{{playbook_dir}}/{{role_dir}}/files/docker-login-gen"
+    dest: "/opt/bin/docker-login-gen"
+    owner: root
+    mode: 0755
+  when: need_common_bootstrap | failed
+
+# Upload services
+- name: "Upload docker-ecr-cfg services"
+  copy:
+    src: "{{playbook_dir}}/{{role_dir}}/files/docker-ecr-cfg.service"
+    dest: "/etc/systemd/system/docker-ecr-cfg.service"
+    owner: root
+    mode: 0644
+  when: need_common_bootstrap | failed
+
+- name: "Upload templated prefetch-flannel.service"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-flannel.service.j2"
+    dest: "/etc/systemd/system/prefetch-flannel.service"
+    owner: root
+    mode: 0644
+  when: need_common_bootstrap | failed
+
+- name: "upload templated prefetch-docker-hyperkube.service"
+  template:
+    src:
+      "{{playbook_dir}}/{{role_dir}}/files/templates/prefetch-docker-hyperkube.service.j2"
+    dest: "/etc/systemd/system/prefetch-docker-hyperkube.service"
+    owner: root
+    mode: 0644
+  when: need_common_bootstrap | failed
+
+- name: "Set common bootstrapped file"
+  file:
+    path: /home/core/.bootstrapped
+    state: touch
+  changed_when: false
+
+# Load services
+- name: daemon-reload
+  command: systemctl daemon-reload
+
+# Run docker-ecr-cfg
+- name: "Fetch docker token"
+  service: name=docker-ecr-cfg state=started

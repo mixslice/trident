@@ -1,0 +1,13 @@
+[k8s-masters]
+{{master_ip}}
+
+[k8s-workers]
+{{worker_ip}}
+
+[k8s-edges]
+{{edge_ip}}
+
+[k8s-nodes:children]
+k8s-masters
+k8s-workers
+k8s-edges

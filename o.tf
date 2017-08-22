@@ -15,7 +15,7 @@ output "k8s_worker_private_ip" {
 }
 # EDGE workers
 output "k8s_edge_ip" {
-  value = "${module.eip.ip}"
+  value = "${list(module.eip.ip)}"
 }
 output "k8s_edge_private_ip" {
   value = "${module.edge.private_ips}"

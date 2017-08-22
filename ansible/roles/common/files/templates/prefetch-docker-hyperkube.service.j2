@@ -1,0 +1,11 @@
+[Unit]
+After=docker.service
+Requires=docker.service
+After=docker-ecr-cfg.service
+Requires=docker-ecr-cfg.service
+Description=Prefetch docker Hyperkube
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/docker pull {{ECR_LOCATION}}/hyperkube:{{KUBE_VERSION}}
+ExecStart=/usr/bin/docker tag {{ECR_LOCATION}}/hyperkube:{{KUBE_VERSION}} {{ KUBE_IMAGE}}:{{KUBE_VERSION}}

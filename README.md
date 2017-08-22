@@ -1,3 +1,6 @@
+[![Kubernetes version](https://img.shields.io/badge/kubernetes-1.7.3-brightgreen.svg)](https://github.com/mixslice/k8s-terraform-aws)
+
+
 # Infrastructure
 
 The infrastructure control repository for our AWS
@@ -54,4 +57,7 @@ make remote_kubecfg
 # Some other requirements
 If you are on a brand new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other Prerequisites that may present a challenge.
 
-1.
+1. Rkt & Docker images: To start the kubernetes cluster you need both Rocket images and Docker images ready. Unfortunately most of the resources are blocked in China (such as gcr.io) Thus you need to somehow download these resources and
+upload the .aci images to S3, docker images to ECR. That's why we put down s3_location and ecr_location in tfvars.
+
+2. After you have all the images prepared, you can use rkt fetch & docker pull to pre-fetch those images. But afterwards don't forget to also tag these images!

@@ -40,7 +40,7 @@ module "eip" {
 }
 
 module "master" {
-  source = "./modules/master"
+  source = "./modules/ec2"
   type = "master"
   count = "${var.master_count}"
   ami = "${lookup(var.amis, var.region)}"
@@ -52,29 +52,13 @@ module "master" {
   iam_profile_name = "${module.iam.master_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "${var.ssh_user_name}"
-  ssh_private_key_path= "${var.ssh_private_key_path}"
-
-  cluster_domain = "${var.cluster_domain}"
-  dns_service_ip = "${var.dns_service_ip}"
-  ecr_location = "${var.ecr_location}"
-  etcd_private_ip = "127.0.0.1"
-  flannel_version = "${var.flannel_version}"
-  kube_image = "${var.kube_image}"
-  kube_version = "${var.kube_version}"
-  node_labels = "${var.master_node_labels}"
-  pod_infra_container_image = "${var.pod_infra_container_image}"
-  pod_network = "${var.pod_network}"
-  s3_location = "${var.s3_location}"
-  service_ip = "${var.k8s_service_ip}"
-  service_ip_range = "${var.service_ip_range}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.master_ansibleNodeType}"
 }
 
 module "worker" {
-  source = "./modules/worker"
+  source = "./modules/ec2"
   type = "worker"
   count = "${var.worker_count}"
   ami = "${lookup(var.amis, var.region)}"
@@ -86,29 +70,13 @@ module "worker" {
   iam_profile_name = "${module.iam.worker_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "${var.ssh_user_name}"
-  ssh_private_key_path= "${var.ssh_private_key_path}"
-
-  cluster_domain = "${var.cluster_domain}"
-  dns_service_ip = "${var.dns_service_ip}"
-  ecr_location = "${var.ecr_location}"
-  etcd_private_ip = "${module.master.private_ips[0]}"
-  flannel_version = "${var.flannel_version}"
-  kube_image = "${var.kube_image}"
-  kube_version = "${var.kube_version}"
-  master_private_ip = "${module.master.private_ips[0]}"
-  node_labels = "${var.worker_node_labels}"
-  pod_infra_container_image = "${var.pod_infra_container_image}"
-  pod_network = "${var.pod_network}"
-  s3_location = "${var.s3_location}"
-  service_ip_range = "${var.service_ip_range}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.worker_ansibleNodeType}"
 }
 
 module "edge"{
-  source = "./modules/worker"
+  source = "./modules/ec2"
   type = "edge"
   count = "${var.edge_count}"
   ami = "${lookup(var.amis, var.region)}"
@@ -120,23 +88,15 @@ module "edge"{
   iam_profile_name = "${module.iam.worker_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
-  ssh_user_name = "${var.ssh_user_name}"
-  ssh_private_key_path= "${var.ssh_private_key_path}"
-
-  cluster_domain = "${var.cluster_domain}"
-  dns_service_ip = "${var.dns_service_ip}"
-  ecr_location = "${var.ecr_location}"
-  etcd_private_ip = "${module.master.private_ips[0]}"
-  flannel_version = "${var.flannel_version}"
-  kube_image = "${var.kube_image}"
-  kube_version = "${var.kube_version}"
-  master_private_ip = "${module.master.private_ips[0]}"
-  node_labels = "${var.edge_node_labels}"
-  pod_infra_container_image = "${var.pod_infra_container_image}"
-  pod_network = "${var.pod_network}"
-  s3_location = "${var.s3_location}"
-  service_ip_range = "${var.service_ip_range}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.edge_ansibleNodeType}"
+}
+
+module "cert" {
+  source = "./modules/cert"
+
+  master_public_ips = "${join(",", module.master.public_ips)}"
+  master_private_ips = "${join(",", module.master.private_ips)}"
+  service_ip = "${var.k8s_service_ip}"
 }
