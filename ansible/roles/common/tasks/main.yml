@@ -42,6 +42,7 @@
   with_items:
   - /opt/bin/
   - /etc/systemd/system/locksmithd.service.d/
+  - /etc/systemd/system/docker.service.d/
   - /etc/systemd/system/flanneld.service.d/
   - /etc/kubernetes/ssl/
   - /etc/kubernetes/manifests/

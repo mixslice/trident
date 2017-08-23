@@ -32,6 +32,7 @@
     mode: 0644
   with_items:
     - { name : "01-wait-for-certs.conf", dest: "/etc/systemd/system/locksmithd.service.d" }
+    - { name : "40-flannel.conf", dest: "/etc/systemd/system/docker.service.d"}
     - { name : "50-network-config.conf", dest: "/etc/systemd/system/flanneld.service.d" }
 
 - name: "upload manifests"
