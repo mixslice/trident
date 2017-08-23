@@ -73,7 +73,7 @@ def write_to_hosts():
       whole_line = ""
       for tup in my_list_of_tuples :
         if tup[0] == id:
-          to_write = ','.join(tup[1])
+          to_write = '\n'.join(tup[1])
           whole_line = line.replace(m.group(0), to_write)
           f.write(whole_line)
   template.close()

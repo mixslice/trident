@@ -64,9 +64,23 @@
 - name: Reloading daemon
   command: "systemctl daemon-reload"
 
+- name: Ensure all basic services are restarted
+  service:
+    name: "{{item}}"
+    state: restarted
+  with_items:
+    - flanneld
+    - locksmithd
+
 - name: Ensure kubelet is started
   service:
     name: "{{item}}"
     state: started
   with_items:
+    - kubelet
+
+- name: Ensure services are restarted on boot
+  service: name={{item}} enabled=yes
+  with_items:
+    - flanneld
     - kubelet

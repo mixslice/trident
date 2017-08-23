@@ -74,5 +74,9 @@
   with_items:
     - kubelet
 
-- name: Ensure etcd2 is started on boot
-  service: name=etcd2 enabled=yes
+- name: Ensure services are restarted on boot
+  service: name={{item}} enabled=yes
+  with_items:
+    - etcd2
+    - flanneld
+    - kubelet
