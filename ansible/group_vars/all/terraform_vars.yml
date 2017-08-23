@@ -1,9 +1,0 @@
-# #####################
-# Variables from terraform
-# #####################
-EDGE_IP : 54.222.167.83
-EDGE_PRIVATE_IP: 10.0.162.28
-MASTER_IP : 52.80.9.189
-MASTER_PRIVATE_IP: 10.0.174.158
-WORKER_IP : 52.80.100.49
-WORKER_PRIVATE_IP: 10.0.46.168
