@@ -1,4 +1,5 @@
 # All printed outputs
+# If you change the names of these outputs you must also change names in ansible/load.py
 # Masters
 output "k8s_master_ip" {
   value = "${module.master.public_ips}"

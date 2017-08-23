@@ -17,4 +17,5 @@ worker_instance_type = "t2.micro"
 master_count = 1
 worker_count = 1
 # Edge number must comply with eip number, and this is not auto linked
+# If you change edge_count, you must link it by yourself in modules.tf
 edge_count = 1
