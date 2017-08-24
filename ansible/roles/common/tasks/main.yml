@@ -83,6 +83,18 @@
     mode: 0644
   when: need_common_bootstrap | failed
 
+- name: "upload ca, etcd, and etcd-key pem files"
+  copy:
+    src: "{{playbook_dir}}/{{secrets_dir}}/{{item}}.pem"
+    dest: "/etc/kubernetes/ssl/{{item}}.pem"
+    owner: root
+    mode: 0644
+  with_items:
+    - ca
+    - etcd
+    - etcd-key
+  when: need_common_bootstrap | failed
+
 - name: "Set common bootstrapped file"
   file:
     path: /home/core/.bootstrapped

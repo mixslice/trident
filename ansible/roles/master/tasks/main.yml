@@ -2,16 +2,13 @@
 # ############
 # Master tasks
 # ############
-- name: "upload cerficates for etcd and master"
+- name: "upload cerficates for master"
   copy:
     src: "{{playbook_dir}}/{{secrets_dir}}/{{item}}.pem"
     dest: "/etc/kubernetes/ssl/{{item}}.pem"
     owner: root
     mode: 0644
   with_items:
-    - ca
-    - etcd
-    - etcd-key
     - kube-master
     - kube-master-key
     - kube-apiserver
@@ -64,7 +61,6 @@
     name: "{{item}}"
     state: restarted
   with_items:
-    - etcd2
     - flanneld
     - locksmithd
 
@@ -78,6 +74,5 @@
 - name: Ensure services are restarted on boot
   service: name={{item}} enabled=yes
   with_items:
-    - etcd2
     - flanneld
     - kubelet

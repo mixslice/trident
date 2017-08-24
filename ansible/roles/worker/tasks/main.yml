@@ -9,9 +9,6 @@
     owner: root
     mode: 0644
   with_items:
-    - ca
-    - etcd
-    - etcd-key
     - kube-worker
     - kube-worker-key
     - kube-proxy

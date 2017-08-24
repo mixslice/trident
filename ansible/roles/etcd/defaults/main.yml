@@ -1,0 +1,4 @@
+role_dir: "roles/etcd"
+secrets_dir: "../secrets"
+ETCD_INITIAL_CLUSTER_TOKEN: "canthistokenbeanything"
+ETCD_ANSIBLE_GROUP: k8s-masters
