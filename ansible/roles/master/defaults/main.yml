@@ -1,4 +1,3 @@
 role_dir: "roles/master"
 secrets_dir: "../secrets"
 NODE_LABELS: "{{master_node_labels}}"
-ETCD_ANSIBLE_GROUP: k8s-masters

@@ -18,6 +18,19 @@ resource "aws_instance" "ec2" {
   iam_instance_profile        = "${var.iam_profile_name}"
   key_name                    = "${var.ssh_key_name}"
 
+  # Simply way to make sure ec2 instances are ssh connectable
+  connection {
+     type = "ssh",
+     user                     = "${var.ssh_user_name}",
+     private_key              = "${file(var.ssh_private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Hello World'"
+    ]
+  }
+
   tags {
     Name = "k8s-${var.type}-${count.index}"
     ansibleFilter = "${var.ansibleFilter}"

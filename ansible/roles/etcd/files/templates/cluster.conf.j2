@@ -1,11 +1,12 @@
 [Service]
 Environment="ETCD_NAME={{ansible_machine_id}}"
-Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ansible_default_ipv4.address}}:2380"
-Environment="ETCD_LISTEN_PEER_URLS=http://{{ansible_default_ipv4.address}}:2380"
-Environment="ETCD_LISTEN_CLIENT_URLS=https://{{ansible_default_ipv4.address}}:2379,https://127.0.0.1:2379"
+Environment="ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379"
 Environment="ETCD_ADVERTISE_CLIENT_URLS=https://{{ansible_default_ipv4.address}}:2379"
-Environment="ETCD_INITIAL_CLUSTER_TOKEN={{ETCD_INITIAL_CLUSTER_TOKEN}}"
-Environment="ETCD_INITIAL_CLUSTER={% for host in groups[ETCD_ANSIBLE_GROUP] -%}
-  {{hostvars[host].ansible_machine_id}}=https://{{hostvars[host].ansible_default_ipv4.address}}:2380{% if not loop.last -%},{%endif%}
-{%- endfor %}"
-Environment="ETCD_INITIAL_CLUSTER_STATE=new"
+Environment="ETCD_CLIENT_CERT_AUTH=true"
+Environment="ETCD_TRUSTED_CA_FILE=/etc/kubernetes/ssl/ca.pem"
+Environment="ETCD_CA_FILE=/etc/kubernetes/ssl/ca.pem"
+Environment="ETCD_CERT_FILE=/etc/kubernetes/ssl/etcd.pem"
+Environment="ETCD_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem"
+Environment="ETCD_PEER_TRUSTED_CA_FILE=/etc/kubernetes/ssl/ca.pem"
+Environment="ETCD_PEER_CERT_FILE=/etc/kubernetes/ssl/etcd.pem"
+Environment="ETCD_PEER_KEY_FILE=/etc/kubernetes/ssl/etcd-key.pem"

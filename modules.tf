@@ -52,6 +52,8 @@ module "master" {
   iam_profile_name = "${module.iam.master_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
+  ssh_user_name = "${var.ssh_user_name}"
+  ssh_private_key_path = "${var.ssh_private_key_path}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.master_ansibleNodeType}"
@@ -70,11 +72,15 @@ module "worker" {
   iam_profile_name = "${module.iam.worker_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
+  ssh_user_name = "${var.ssh_user_name}"
+  ssh_private_key_path = "${var.ssh_private_key_path}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.worker_ansibleNodeType}"
 }
-
+# Basically an edge node is no different than a worker node,
+# except that edge nodes has a wider security rule set and
+# different tag.
 module "edge"{
   source = "./modules/ec2"
   type = "edge"
@@ -82,17 +88,20 @@ module "edge"{
   ami = "${lookup(var.amis, var.region)}"
   instance_type = "${var.worker_instance_type}"
   volume_size = "${var.worker_volume_size}"
-
+  #Edge node has its own security rules
   sg_id = "${module.sg.edge_node_id}"
   subnet_id = "${module.vpc.subnet_id}"
   iam_profile_name = "${module.iam.worker_profile_name}"
 
   ssh_key_name = "${var.ssh_key_name}"
+  ssh_user_name = "${var.ssh_user_name}"
+  ssh_private_key_path = "${var.ssh_private_key_path}"
 
   ansibleFilter = "${var.ansibleFilter}"
   ansibleNodeType = "${var.edge_ansibleNodeType}"
 }
 
+# TODO: Move this out of terraform
 module "cert" {
   source = "./modules/cert"
 

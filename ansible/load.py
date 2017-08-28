@@ -27,14 +27,14 @@ replace_regex = r"\{{([A-Za-z0-9_]+)\}}"
 my_list_of_tuples = []
 
 def readFile(fileName,mode):
-    f = None
-    while (f == None):
-        try:
-            f = open(fileName,mode)
-            return f
-        except:
-            print 'Open file "',fileName,'" failed.'
-            return None
+  f = None
+  while (f == None):
+    try:
+      f = open(fileName,mode)
+      return f
+    except:
+      print 'Open file "',fileName,'" failed.'
+      return None
 
 def id_lookup(line):
   for identifiers in all_identifiers:
@@ -102,6 +102,7 @@ def read_tf_output(fileName):
     line = var_lines[i].rstrip()
     id = id_lookup(line)
     found = (id != None )
+    # As we know that terraform-output contains one IP per line
     if ( found ):
       i += build_dict_ip_address_rtn_lines_extra(var_lines[i+1:], id)
     i += 1

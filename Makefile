@@ -4,16 +4,12 @@ ADMIN_CERT = ./secrets/admin.pem
 MASTER_HOST = $(shell terraform output | grep -A1 master_ip | awk 'NR>1 {print $1}' | xargs echo)
 SECRET_NAME ?= aws-ecr-cn-north-1
 
+# Terraform
 plan: tf_get
 	terraform plan
 
 apply: tf_get
 	terraform apply
-
-build: 	apply ansible_setup kubecfg sync_upload wait_for_kubectl_version kubectl_dockertoken create_all_addons build_complete
-
-build_complete:
-	osascript -e 'display notification "Your build has finished!" with title "Jobs Done"'
 
 clean: tf_clean key_clean
 
@@ -26,9 +22,25 @@ tf_get:
 tf_clean: tf_get
 	terraform destroy
 
+# Ansible
+ansible_build:
+	terraform output > ./ansible/terraform-output
+	python ./ansible/load.py
+	cd ./ansible && ansible-playbook site.yml && cd ./..
+
+# Secrets
 key_clean:
 	ls secrets | grep -v README  | sed "s/^/secrets\//" | xargs rm -rf
 
+# Main build
+build: apply ansible_build kubecfg sync_upload wait_for_kubectl_version kubectl_dockertoken create_all_addons build_complete
+
+tmp: kubecfg sync_upload wait_for_kubectl_version kubectl_dockertoken create_all_addons build_complete
+
+build_complete:
+	osascript -e 'display notification "Your build has finished!" with title "Jobs Done"'
+
+# Kubernetes
 kubecfg:
 	./cfssl/generate.sh client admin
 	kubectl config set-cluster default-cluster \
@@ -87,8 +99,3 @@ delete_secrets:
 
 traefik_ui:
 	open http://localhost:8001/api/v1/namespaces/kube-system/services/traefik-web-ui:web/proxy/
-
-ansible_setup:
-	terraform output > ./ansible/terraform-output
-	python ./ansible/load.py
-	cd ./ansible && ansible-playbook site.yml && cd ./..

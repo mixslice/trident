@@ -3,17 +3,17 @@
 # Setup K8s components
 ##############################
 
-- hosts: k8s-nodes
-  become: yes
-  gather_facts: false
-  roles:
-    - common
+# - hosts: k8s-nodes
+#   become: yes
+#   gather_facts: false
+#   roles:
+#     - common
 
-- hosts: k8s-masters
-  become: yes
-  roles:
-    - etcd
-    - master
+# - hosts: k8s-masters
+#   become: yes
+#   roles:
+#     - etcd
+#     - master
 
 - hosts: k8s-workers
   become: yes

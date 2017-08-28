@@ -5,6 +5,8 @@ variable "ami" {}
 variable "instance_type" {}
 variable "volume_size" {}
 variable "ssh_key_name" {}
+variable "ssh_user_name" {}
+variable "ssh_private_key_path" {}
 
 variable "sg_id" {}
 variable "subnet_id" {}

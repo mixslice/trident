@@ -37,9 +37,9 @@ sync_aci_and_gcr/*.aci
 *.retry
 
 ### cluster specific
-ansible/group_vars/all/terraform_vars.yml
-ansible/terraform-output
-ansible/hosts
+terraform_vars.yml
+terraform-output
+hosts
 
 ### Any binary/tar
 *.tar
