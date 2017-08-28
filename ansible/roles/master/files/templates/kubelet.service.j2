@@ -22,7 +22,9 @@ ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --allow-privileged=true \
   --anonymous-auth=false \
   --api-servers=http://127.0.0.1:8080 \
-  --cloud-provider=aws \
+{%if CLOUD_PROVIDER %}
+  --cloud-provider={{CLOUD_PROVIDER}} \
+{% endif %}
   --client-ca-file=/etc/kubernetes/ssl/ca.pem \
   --cluster-dns={{DNS_SERVICE_IP}} \
   --cluster-domain={{CLUSTER_DOMAIN}} \

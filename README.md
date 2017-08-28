@@ -1,20 +1,19 @@
-[![Kubernetes version](https://img.shields.io/badge/kubernetes-1.7.3-brightgreen.svg)](https://github.com/mixslice/k8s-terraform-aws)
+[![Kubernetes version](https://img.shields.io/badge/kubernetes-1.7.3-brightgreen.svg)](https://github.com/mixslice/trident)
+[![Terraform version](https://img.shields.io/badge/terraform-0.9.6-brightgreen.svg)](https://github.com/mixslice/trident)
+[![Ansible version](https://img.shields.io/badge/ansible-2.3.2.0-brightgreen.svg)](https://github.com/mixslice/trident)
 
+# Trident 🔱
 
-# Infrastructure
+Trident is a project for bootstrapping a kubernetes cluster in China.
 
-The infrastructure control repository for our AWS
-
-Currently we uses Terraform to bootstrap everything.
-
-We are switching to Terraform + Ansible! For a rather stable version go to release v0.1
+Currently we only support setup on AWS, but that's only the terraform part. Ansible part can boostrap any type of machine.
 
 ---
 
-## Set up your credentials
-Put `access_key` and `secret_key` in `~/.aws/credentials`
+## Setting up credentials
+Put your `access_key` and `secret_key` in local directory `~/.aws/credentials`
 
-Or you can put your credentials in `terraform.tfvars`.
+Alternatively you can put your credentials in `terraform.tfvars`.
 
 ## Prerequisite
 
@@ -52,12 +51,31 @@ make remote_kubecfg
 - [ ] Monitoring with Prometheus
 - [ ] Logging with Fluentd and cloudwatch
 - [ ] Kubernetes upgrade mechanism
-- [ ] Ansible or kubespray
+- [x] Ansible or kubespray
 
-# Some other requirements
-If you are on a brand new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other Prerequisites that may present a challenge.
+# <span style="color:#b60205"> Other requirements </span>
+If you are on a new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other prerequisites that may present a challenge.
 
-1. Rkt & Docker images: To start the kubernetes cluster you need both Rocket images and Docker images ready. Unfortunately most of the resources are blocked in China (such as gcr.io) Thus you need to somehow download these resources and
-upload the .aci images to S3, docker images to ECR. That's why we put down s3_location and ecr_location in tfvars.
+#### 1. GFW
+Obviously the greatest challenge of bootstrapping a kubernetes cluster in China is the GFW, which blocks almost a lot of the image sources. Our solution contains a public and private part. We have a public bucker in amazon S3: https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin which you can use to pull rkt images. In the bucket there are:
+- flannel_v0.7.1.aci
+- hyperkube_v1.7.3_coreos.0.aci
 
-2. After you have all the images prepared, you can use rkt fetch & docker pull to pre-fetch those images. But afterwards don't forget to also tag these images!
+However for the private part, the docker images are store in ECR (also an amazon service.) Some required images are:
+- hyperkube_v1.7.3_coreos.0
+
+and then there are some images for addons.(Not required, but without them your build with create_all_addons will fail.)
+
+#### 2. Docker token refresh
+There are 2 docker token generates.
+One is used to pull hyperkube from ecr, which is at the container level. We provide a public image awscli at daocloud.io/mixslice/awscli that we use in the ansible part.
+
+Another is used to allow kubernetes to pull all other addons images from ecr. We also provide a public image ecr-dockercfg-refresh at daocloud.io/mixslice/ecr-dockercfg-refresh which is applied as an addon.
+
+#### 3. Others
+We do not support linking to existing machines at the terraform part. But if you are confident in your physical machine set up you can skip the terraform part and use the ansible part with
+```
+ansible-playbook site.yml
+```
+**Warning**
+Put your hosts in hosts, put your ssh credentials in ansible.cfg.

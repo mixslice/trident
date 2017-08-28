@@ -34,6 +34,8 @@ variable "access_key" {}
 variable "secret_key" {}
 
 variable "ssh_key_name" {}
+variable "ssh_user_name" {}
+variable "ssh_private_key_path" {}
 
 variable "vpc_cidr" {
   default = "10.0.0.0/16"

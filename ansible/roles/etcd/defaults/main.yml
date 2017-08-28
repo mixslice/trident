@@ -1,0 +1,2 @@
+role_dir: "roles/etcd"
+secrets_dir: "../secrets"

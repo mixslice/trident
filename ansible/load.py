@@ -8,6 +8,7 @@ host_file_dir = "/hosts"
 host_file_template_dir = "/hosts.template"
 ansible_vars_dir = "/group_vars/all/terraform_vars.yml"
 ansible_vars_tempalte_dir = "/group_vars/all/terraform_vars.yml.template"
+# If your hosts and ansible_vars_dir isnt at the same directory as this file
 pre_dirs = 0
 
 all_identifiers = [
@@ -26,20 +27,18 @@ replace_regex = r"\{{([A-Za-z0-9_]+)\}}"
 my_list_of_tuples = []
 
 def readFile(fileName,mode):
-    f = None
-    while (f == None):
-        try:
-            f = open(fileName,mode)
-            print ('Open file successful')
-            return f
-        except:
-            print 'Open file "',fileName,'" failed.'
-            return None
+  f = None
+  while (f == None):
+    try:
+      f = open(fileName,mode)
+      return f
+    except:
+      print 'Open file "',fileName,'" failed.'
+      return None
 
 def id_lookup(line):
   for identifiers in all_identifiers:
     if identifiers in line:
-      print("Found %s"%identifiers)
       return identifiers
   return None
 
@@ -58,9 +57,7 @@ def build_dict_ip_address_rtn_lines_extra(lines_to_read, id):
   my_list_of_tuples.append((id, ips))
   return len(ips)
 
-def write_to_hosts():
-  template = readFile(dir_path+"/.."*pre_dirs+host_file_template_dir, 'r')
-  f = readFile(dir_path+"/.."*pre_dirs+host_file_dir, 'w')
+def find_and_wirte_with_delim(template, f, delim):
   for line in template.readlines():
     m = re.search(replace_regex, line)
     if( m == None):
@@ -73,9 +70,15 @@ def write_to_hosts():
       whole_line = ""
       for tup in my_list_of_tuples :
         if tup[0] == id:
-          to_write = ','.join(tup[1])
+          to_write = delim.join(tup[1])
           whole_line = line.replace(m.group(0), to_write)
           f.write(whole_line)
+  return
+
+def write_to_hosts():
+  template = readFile(dir_path+"/.."*pre_dirs+host_file_template_dir, 'r')
+  f = readFile(dir_path+"/.."*pre_dirs+host_file_dir, 'w')
+  find_and_wirte_with_delim(template, f, '\n')
   template.close()
   f.close()
   return
@@ -83,27 +86,15 @@ def write_to_hosts():
 def write_to_ansible_vars():
   template = readFile(dir_path+"/.."*pre_dirs+ansible_vars_tempalte_dir, 'r')
   f = readFile(dir_path+"/.."*pre_dirs+ansible_vars_dir, 'w')
-  for line in template.readlines():
-    m = re.search(replace_regex, line)
-    if( m == None):
-      # Didn find it
-      f.write(line)
-    else:
-      # found it, get the id to replace
-      id = m.group(1)
-      to_write = ""
-      whole_line = ""
-      for tup in my_list_of_tuples :
-        if tup[0] == id:
-          to_write = ','.join(tup[1])
-          whole_line = line.replace(m.group(0), to_write)
-          f.write(whole_line)
+  find_and_wirte_with_delim(template, f, ',')
   template.close()
   f.close()
   return
 
 def read_tf_output(fileName):
   f = readFile(fileName,'r')
+  if(f == None):
+    raise "File does not exist"
   var_lines = f.readlines()
   var_length = len(var_lines)
   i = 0
@@ -111,6 +102,7 @@ def read_tf_output(fileName):
     line = var_lines[i].rstrip()
     id = id_lookup(line)
     found = (id != None )
+    # As we know that terraform-output contains one IP per line
     if ( found ):
       i += build_dict_ip_address_rtn_lines_extra(var_lines[i+1:], id)
     i += 1

@@ -36,6 +36,11 @@ sync_aci_and_gcr/*.aci
 ### Ansible redundants
 *.retry
 
+### cluster specific
+terraform_vars.yml
+terraform-output
+hosts
+
 ### Any binary/tar
 *.tar
 *.zip
