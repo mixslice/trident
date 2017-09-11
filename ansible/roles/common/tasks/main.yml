@@ -46,6 +46,7 @@
   - /etc/systemd/system/flanneld.service.d/
   - /etc/kubernetes/ssl/
   - /etc/kubernetes/manifests/
+  - /etc/kubernetes/jenkins/
   when: need_common_bootstrap | failed
 
 # Upload configs
