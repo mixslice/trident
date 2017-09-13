@@ -12,7 +12,7 @@
 - name: "get python tar file"
   become: no
   get_url:
-    url: https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin/pypy.tar.bz2
+    url: "{{S3_LOCATION}}/pypy.tar.bz2"
     dest: /tmp/pypy.tar.bz2
   when: need_bootstrap | failed
 
