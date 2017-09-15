@@ -14,6 +14,7 @@
   roles:
     - etcd
     - master
+    - jenkins
 
 - hosts: k8s-workers
   become: yes
