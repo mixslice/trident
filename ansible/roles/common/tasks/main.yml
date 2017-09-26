@@ -9,9 +9,11 @@
   ignore_errors: True
   changed_when: false
 
-- name: "scp python tar file"
+- name: "get python tar file"
   become: no
-  local_action : "command scp {{playbook_dir}}/{{role_dir}}/files/python/pypy.tar.bz2 core@{{inventory_hostname}}:/tmp/pypy.tar.bz2"
+  get_url:
+    url: "{{S3_LOCATION}}/pypy.tar.bz2"
+    dest: /tmp/pypy.tar.bz2
   when: need_bootstrap | failed
 
 - name: "scp bootstrap.sh"
@@ -46,6 +48,7 @@
   - /etc/systemd/system/flanneld.service.d/
   - /etc/kubernetes/ssl/
   - /etc/kubernetes/manifests/
+  - /etc/kubernetes/jenkins/
   when: need_common_bootstrap | failed
 
 # Upload configs

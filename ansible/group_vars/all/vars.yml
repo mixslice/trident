@@ -5,6 +5,7 @@
 CLOUD_PROVIDER: "aws"
 REGION: "cn-north-1"
 ansible_python_interpreter: "/opt/python/bin/python"
+ansible_ssh_private_key_file: "~/.ssh/k8s.pem"
 
 # #####################
 # Images location

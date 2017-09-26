@@ -1,0 +1,8 @@
+[Unit]
+After=docker.service
+Requires=docker.service
+[Service]
+ExecStartPre=/usr/bin/docker volume create --name jenkins_home
+ExecStart=/usr/bin/docker run -d -it --name jenkins --mount source=jenkins_home,target=/var/jenkins_home -p 8000:8080 -p 50000:50000 {{ECR_LOCATION}}/jenkins:lts
+[Install]
+WantedBy=multi-user.target

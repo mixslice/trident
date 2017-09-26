@@ -1,5 +1,5 @@
 [![Kubernetes version](https://img.shields.io/badge/kubernetes-1.7.3-brightgreen.svg)](https://github.com/mixslice/trident)
-[![Terraform version](https://img.shields.io/badge/terraform-0.9.6-brightgreen.svg)](https://github.com/mixslice/trident)
+[![Terraform version](https://img.shields.io/badge/terraform-0.10.5-brightgreen.svg)](https://github.com/mixslice/trident)
 [![Ansible version](https://img.shields.io/badge/ansible-2.3.2.0-brightgreen.svg)](https://github.com/mixslice/trident)
 
 # Trident 🔱
@@ -25,7 +25,8 @@ Download [Terraform](https://www.terraform.io/)
 ```
 make build
 ```
-## Remote setup
+## Remote kubectl setup
+(You probably want to look into MAKEFILE to see how this works)
 ```
 make remote_kubecfg
 ```
@@ -52,6 +53,9 @@ make remote_kubecfg
 - [ ] Logging with Fluentd and cloudwatch
 - [ ] Kubernetes upgrade mechanism
 - [x] Ansible or kubespray
+
+# CI/CD
+This is a work in progress. We are still deciding whether to deploy jenkins as an addon of kubernetes or as coreOS service.
 
 # <span style="color:#b60205"> Other requirements </span>
 If you are on a new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other prerequisites that may present a challenge.

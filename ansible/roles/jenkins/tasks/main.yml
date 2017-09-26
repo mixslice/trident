@@ -1,0 +1,20 @@
+---
+# ############
+# Jenkins tasks
+# ############
+- name: "Upload jenkins service yaml file"
+  template:
+    src: "{{playbook_dir}}/{{role_dir}}/files/jenkins.service.j2"
+    dest: "/etc/systemd/system/jenkins.service"
+    owner: root
+    mode: 0644
+
+- name: "Start jenkins service"
+  service:
+    name: jenkins
+    state: started
+
+- name: "Ensure jenkins service is restarted on reboot"
+  service:
+    name: jenkins
+    enabled: yes
