@@ -25,6 +25,7 @@ resource "aws_instance" "ec2" {
      private_key              = "${file(var.ssh_private_key_path)}"
   }
 
+  # This provisioner is used to ensure SSH connection to our machines
   provisioner "remote-exec" {
     inline = [
       "echo 'Hello World'"
@@ -33,8 +34,5 @@ resource "aws_instance" "ec2" {
 
   tags {
     Name = "k8s-${var.type}-${count.index}"
-    ansibleFilter = "${var.ansibleFilter}"
-    ansibleNodeType = "${var.ansibleNodeType}"
-    ansibleNodeName = "${var.ansibleNodeType}-${count.index}"
   }
 }

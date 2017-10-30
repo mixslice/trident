@@ -5,7 +5,7 @@ module "vpc" {
   source = "./modules/vpc"
   # Input
   vpc_cidr = "${var.vpc_cidr}"
-  # Outpu
+  # Output
   # vpc_id : aws_vpc.kubernetes.id
   # subnet_id : aws_subnet.kubernetes.id
 }
@@ -32,10 +32,10 @@ module "iam" {
   # master_profile_name : aws_iam_instance_profile.master_profile.name
 }
 
-module "eip" {
+module "edge_eip" {
   source = "./modules/eip"
   # Input
-  allocation_id = "${var.eip_allocation_id}"
+  allocation_id = "${var.edge_eip_allocation_id}"
   instance_id = "${module.edge.instance_ids[0]}"
 }
 
@@ -55,8 +55,6 @@ module "master" {
   ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path = "${var.ssh_private_key_path}"
 
-  ansibleFilter = "${var.ansibleFilter}"
-  ansibleNodeType = "${var.master_ansibleNodeType}"
 }
 
 module "worker" {
@@ -75,8 +73,6 @@ module "worker" {
   ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path = "${var.ssh_private_key_path}"
 
-  ansibleFilter = "${var.ansibleFilter}"
-  ansibleNodeType = "${var.worker_ansibleNodeType}"
 }
 # Basically an edge node is no different than a worker node,
 # except that edge nodes has a wider security rule set and
@@ -97,8 +93,6 @@ module "edge"{
   ssh_user_name = "${var.ssh_user_name}"
   ssh_private_key_path = "${var.ssh_private_key_path}"
 
-  ansibleFilter = "${var.ansibleFilter}"
-  ansibleNodeType = "${var.edge_ansibleNodeType}"
 }
 
 # TODO: Move this out of terraform

@@ -1,5 +1,6 @@
 # Input
 
+# Output
 # Master
 output "master_profile_id" {
   value = "${ aws_iam_role.master_role.id }"

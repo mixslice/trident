@@ -37,6 +37,9 @@ variable "ssh_key_name" {}
 variable "ssh_user_name" {}
 variable "ssh_private_key_path" {}
 
+variable "edge_eip_allocation_id" {}
+# variable "master_eip_allocation_id" {}
+
 variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
@@ -74,8 +77,6 @@ variable "amis" {
     cn-north-1 = "ami-ca5c8da7"
   }
 }
-
-variable "eip_allocation_id" {}
 
 variable "kube_image" {
   default = "quay.io/coreos/hyperkube"

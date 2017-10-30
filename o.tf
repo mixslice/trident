@@ -1,5 +1,5 @@
 # All printed outputs
-# If you change the names of these outputs you must also change names in ansible/load.py
+# If you change the names of these outputs you MUST also change names in ansible/load.py
 # Masters
 output "k8s_master_ip" {
   value = "${module.master.public_ips}"
@@ -16,7 +16,7 @@ output "k8s_worker_private_ip" {
 }
 # EDGE workers
 output "k8s_edge_ip" {
-  value = "${list(module.eip.ip)}"
+  value = "${list(module.edge_eip.ip)}"
 }
 output "k8s_edge_private_ip" {
   value = "${module.edge.private_ips}"

@@ -7,7 +7,8 @@ ssh_key_name = "k8s"
 ssh_private_key_path = "~/.ssh/k8s.pem"
 
 # service expose
-eip_allocation_id = ""
+edge_eip_allocation_id = ""
+master_eip_alocation_id = ""
 
 # cluster config
 master_instance_type = "t2.micro"

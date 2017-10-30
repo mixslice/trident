@@ -12,9 +12,6 @@ variable "sg_id" {}
 variable "subnet_id" {}
 variable "iam_profile_name" {}
 
-variable "ansibleFilter" {}
-variable "ansibleNodeType" {}
-
 output "public_ips" {
   value = "${aws_instance.ec2.*.public_ip}"
 }
