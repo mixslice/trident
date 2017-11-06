@@ -10,6 +10,9 @@ Currently we only support setup on AWS, but that's only the terraform part. Ansi
 
 ---
 
+# Asciinema recording of the whole build
+Link: https://asciinema.org/a/r15Q5nbKunvhZ3BkUhNfWtBYP
+
 ## Setting up credentials
 Put your `access_key` and `secret_key` in local directory `~/.aws/credentials`
 
