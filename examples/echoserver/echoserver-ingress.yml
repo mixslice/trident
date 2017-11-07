@@ -5,10 +5,10 @@ metadata:
   namespace: default
 spec:
   rules:
-  - host: echoserver.example.com
+  - host: www.mixslice.com
     http:
       paths:
-      - path: /
+      - path: /echo
         backend:
           serviceName: echoserver
           servicePort: 80

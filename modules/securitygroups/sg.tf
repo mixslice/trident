@@ -12,7 +12,7 @@ resource "aws_security_group" "k8s-master" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  # 8000 port for jenkins
+  # Forgot what this is for but looks fine
   ingress {
     from_port = 8000
     to_port = 8000

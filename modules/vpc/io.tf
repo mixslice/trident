@@ -1,3 +1,4 @@
+# vpc io.tf
 variable "vpc_cidr" {}
 
 output "vpc_id" {

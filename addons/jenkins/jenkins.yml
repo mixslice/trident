@@ -15,13 +15,15 @@ spec:
       terminationGracePeriodSeconds: 60
       hostNetwork: true
       restartPolicy: Always
-      serviceAccountName: ingress
+      serviceAccountName: jenkins-sa
       containers:
         - name: jenkins
-          image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/jenkins:lts
+          image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/jenkins:custom0.1
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
           ports:
             - containerPort: 8080
             - containerPort: 50000
@@ -29,7 +31,6 @@ spec:
       - name: jenkins-home
         persistentVolumeClaim:
           claimName: jenkins-pvc
-      # volumes:
-      # - hostPath:
-      #     path: /etc/kubernetes/jenkins
-      #   name: jenkins-home
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock

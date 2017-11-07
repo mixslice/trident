@@ -1,3 +1,4 @@
+# For detailed certificates generation, refer to README.md in /cfssl
 resource "null_resource" "certificates_gen" {
     provisioner "local-exec" {
       command = <<EOF

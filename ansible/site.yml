@@ -31,10 +31,3 @@
   }
   roles:
     - worker
-
-##############################
-# Setup kubectl
-##############################
-# - hosts: localhost
-#   roles:
-#     - ansible-config

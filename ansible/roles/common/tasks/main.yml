@@ -11,14 +11,12 @@
 
 - name: "get python tar file"
   become: no
-  get_url:
-    url: "{{S3_LOCATION}}/pypy.tar.bz2"
-    dest: /tmp/pypy.tar.bz2
+  local_action : "command scp -i ~/.ssh/k8s.pem {{playbook_dir}}/{{role_dir}}/files/python/pypy.tar.bz2 core@{{inventory_hostname}}:/tmp/pypy.tar.bz2"
   when: need_bootstrap | failed
 
 - name: "scp bootstrap.sh"
   become: no
-  local_action : "command scp {{playbook_dir}}/{{role_dir}}/files/python/bootstrap.sh core@{{inventory_hostname}}:/tmp/bootstrap.sh"
+  local_action : "command scp -i ~/.ssh/k8s.pem {{playbook_dir}}/{{role_dir}}/files/python/bootstrap.sh core@{{inventory_hostname}}:/tmp/bootstrap.sh"
   when: need_bootstrap | failed
 
 - name: "run bootstrap"
