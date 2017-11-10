@@ -1,5 +1,5 @@
 [![Kubernetes version](https://img.shields.io/badge/kubernetes-1.7.3-brightgreen.svg)](https://github.com/mixslice/trident)
-[![Terraform version](https://img.shields.io/badge/terraform-0.10.5-brightgreen.svg)](https://github.com/mixslice/trident)
+[![Terraform version](https://img.shields.io/badge/terraform-0.9.6-brightgreen.svg)](https://github.com/mixslice/trident)
 [![Ansible version](https://img.shields.io/badge/ansible-2.3.2.0-brightgreen.svg)](https://github.com/mixslice/trident)
 
 # Trident 🔱
@@ -7,6 +7,9 @@
 Trident is an open source project for bootstrapping a production ready [Kubernetes] cluster on China AWS.
 
 We use [Terraform] to bring up raw machines and related network configurations. Then we use [Ansible] to deploy the kubernetes cluster onto those machines.
+
+# Asciinema recording of the whole build
+[![demo](https://asciinema.org/a/r15Q5nbKunvhZ3BkUhNfWtBYP.png)](https://asciinema.org/a/r15Q5nbKunvhZ3BkUhNfWtBYP?autoplay=1)
 
 ## Main Features
 Terraform
@@ -47,8 +50,9 @@ Alternatively you can put your credentials in `terraform.tfvars`.
 ## Prerequisite
 
 Download
-[Terraform] v0.10.5 , [Ansible] v2.3.2.0 and [CFSSL]
+[Terraform] v0.9.6 , [Ansible] v2.3.2.0 and [CFSSL]
 
+> **Warning:** Terraform version (0.9.6 below) without [provider/aws: Revoke default ipv6 egress rule for aws_security_group](https://github.com/hashicorp/terraform/pull/15075) patch is required.
 ---
 
 # Set up guide
