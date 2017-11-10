@@ -102,10 +102,10 @@ def write_to_ansible_vars():
 
 
 def read_tf_output(fileName):
-'''
-Main entry point, given a filename, read the file and output to
-hosts and vars
-'''
+    '''
+    Main entry point, given a filename, read the file and output to
+    hosts and vars
+    '''
     f = readFile(fileName, 'r')
     if (f == None):
         raise "File does not exist"
