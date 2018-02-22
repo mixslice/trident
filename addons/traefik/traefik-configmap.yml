@@ -19,7 +19,6 @@ data:
     email = "zzq889@gmail.com"
     storage = "/acme/acme.json"
     entryPoint = "https"
-    onDemand = true
     onHostRule = true
     caServer = "https://acme-v01.api.letsencrypt.org/directory"
     [[acme.domains]]
