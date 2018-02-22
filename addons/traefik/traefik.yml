@@ -16,9 +16,21 @@ spec:
       hostNetwork: true
       restartPolicy: Always
       serviceAccountName: ingress
+      volumes:
+      - name: config
+        configMap:
+          name: traefik-conf
+      - name: acme
+        hostPath:
+          path: /srv/configs/acme/acme.json
       containers:
       - image: 493490470276.dkr.ecr.cn-north-1.amazonaws.com.cn/traefik
-        name: traefik-ingress-lb
+        name: traefik-ingress-labels
+        volumeMounts:
+        - mountPath: "/config"
+          name: "config"
+        - mountPath: "/acme/acme.json"
+          name: "acme"
         resources:
           limits:
             cpu: 200m
@@ -30,10 +42,21 @@ spec:
         - name: http
           containerPort: 80
           hostPort: 80
+        - name: https
+          containerPort: 443
+          hostPort: 443
+
         - name: admin
           containerPort: 8580
           hostPort: 8580
+        env:
+        - name: DNSPOD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dnspod
+              key: DNSPOD_API_KEY
         args:
+        - --configfile=/config/traefik.toml
         - --web
         - --web.address=:8580
         - --kubernetes
