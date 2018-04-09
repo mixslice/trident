@@ -56,7 +56,7 @@ node_clean:
 	kubectl get no | grep NotReady | awk '{print $$1}' | xargs kubectl delete node
 
 kubectl_dockertoken:
-	kubectl apply -f addons/ecr-dockercfg-refresh/
+	kubectl apply -f addons/ecr-dockercfg-refresh/ --validate=false
 
 delete_kubectl_dockertoken:
 	kubectl delete -f addons/ecr-dockercfg-refresh/

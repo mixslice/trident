@@ -2,28 +2,28 @@
 # ############
 # Etcd tasks
 # ############
-- name: create etcd2 systemd customization directory
+- name: create etcd-member systemd customization directory
   file: name={{item}} state=directory
   with_items:
-  - /etc/systemd/system/etcd2.service.d/
+  - /etc/systemd/system/etcd-member.service.d/
 
-- name: Install etcd2 service settings
+- name: Install etcd-member service settings
   template:
     src: "{{playbook_dir}}/{{role_dir}}/files/templates/cluster.conf.j2"
-    dest: /etc/systemd/system/etcd2.service.d/cluster.conf
+    dest: /etc/systemd/system/etcd-member.service.d/cluster.conf
   register: etcd_conf
 
 - name: Reloading daemon
   command: "systemctl daemon-reload"
   when: etcd_conf.changed
 
-- name: Restarting etcd2 service if needed
-  service: name=etcd2 state=restarted
+- name: Restarting etcd-member service if needed
+  service: name=etcd-member state=restarted
   when: etcd_conf.changed
 
-- name: Ensure etcd2 service is started
-  service: name=etcd2 state=started
+- name: Ensure etcd-member service is started
+  service: name=etcd-member state=started
   when: not etcd_conf.changed
 
-- name: Ensure etcd2 is started on boot
-  service: name=etcd2 enabled=yes
+- name: Ensure etcd-member is started on boot
+  service: name=etcd-member enabled=yes
