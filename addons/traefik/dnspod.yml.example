@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dnspod
+  namespace: kube-system
+type: Opaque
+data:
+  DNSPOD_API_KEY: <your_dnspod_key>

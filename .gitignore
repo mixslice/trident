@@ -45,3 +45,4 @@ hosts
 *.tar
 *.zip
 *.tar.bz2
+dnspod.yml

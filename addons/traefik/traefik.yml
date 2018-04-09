@@ -31,13 +31,6 @@ spec:
           name: "config"
         - mountPath: "/acme/acme.json"
           name: "acme"
-        resources:
-          limits:
-            cpu: 200m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
         ports:
         - name: http
           containerPort: 80
