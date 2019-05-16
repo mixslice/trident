@@ -39,9 +39,6 @@ Others
 
 ---
 
-# Asciinema recording of the whole build
-Link: https://asciinema.org/a/146104
-
 ## Setting up credentials
 Put your `access_key` and `secret_key` in local directory `~/.aws/credentials`
 
@@ -62,6 +59,8 @@ Download
 $ make build
 ```
 ## Remote kubectl setup
+> This step is used when you are trying to set up/config kubectl on a different comptuer
+
 ```
 $ make remote_kubecfg
 ```
@@ -70,18 +69,18 @@ $ make remote_kubecfg
 If you are on a new machine and want to use this code to bootstrap your AWS + Kubernetes cluster, here are some other prerequisites that may present a challenge.
 
 #### 1. GFW
-Obviously the greatest challenge of bootstrapping a kubernetes cluster in China is the GFW, which blocks almost a lot of the image sources. Our solution contains a public and private part. We have a public bucker in amazon S3: https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin which you can use to pull rkt images. In the bucket there are:
+Obviously the greatest challenge of bootstrapping a kubernetes cluster in China is the GFW, which blocks almost a lot of the image sources. Our solution contains a public and private part. We have a public bucket in amazon S3: https://s3.cn-north-1.amazonaws.com.cn/kubernetes-bin which you can use to pull rkt images. In the bucket there are:
 - flannel_v0.7.1.aci
 - hyperkube_v1.7.3_coreos.0.aci
 
 However for the private part, the docker images are store in ECR (also an amazon service.) Some required images are:
 - hyperkube_v1.7.3_coreos.0
 
-and then there are some images for addons.(Not required, but without them your build with create_all_addons will fail.)
+and then there are some images for addons.(Not required, but without them your build with create_all_addons will fail, which will NOT cause the build to stop, because that is after the cluster's set up)
 
 #### 2. Docker token refresh
-There are 2 docker token generates.
-One is used to pull hyperkube from ecr, which is at the container level. We provide a public image awscli at daocloud.io/mixslice/awscli that we use in the ansible part.
+There are 2 docker token generators.
+One is used to pull hyperkube from ECR, which is at the container level. We provide a public image awscli at daocloud.io/mixslice/awscli that we use in the ansible part.
 
 Another is used to allow kubernetes to pull all other addons images from ecr. We also provide a public image ecr-dockercfg-refresh at daocloud.io/mixslice/ecr-dockercfg-refresh which is applied as an addon.
 
